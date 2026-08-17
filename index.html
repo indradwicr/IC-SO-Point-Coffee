@@ -371,7 +371,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi (Sync Sheets)</div>
+        <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi (Sync Tab: Kalkulator Biang)</div>
         <div class="input-row">
           <label for="biangTimbangan">Total Timbangan</label>
           <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
@@ -449,7 +449,7 @@
       <span>Gramasi</span>
     </button>
     
-    <button class="nav-item-center" onclick="resetForm()">
+    <button class="nav-item-center" onclick="refreshAllData()">
       <i class="ri-refresh-line"></i>
     </button>
 
@@ -487,40 +487,17 @@
 </div>
 
 <script>
-  // LINK SPREADSHEET CSV TERBARU
   const SPREADSHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTh44Pn8778u8iW9A9QA1UyYeHj_zO2RQET5gUlhPpua48_MA6XCy0HY6zKAeOGpS9UdT8ogPkzvKo0/pub?output=csv';
   
-  // GID TAB GRAMASI
-  const GRAMASI_GID = '2064100982'; 
-
-  // URL GOOGLE APPS SCRIPT TERBARU
+  // GID TAB TERPISAH
+  const GRAMASI_GID = '2064100982'; // Tab: Kalkulator PC
+  const BIANG_GID = '1208855579';    // Tab: Kalkulator Biang
+  
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1OtQ6ngQ9KUX96bPJtGzsRX0XCbmu4lEA_q1aAM96AtBMRRqWe9YTwmc0ceyG2kpDzw/exec'; 
 
   const ADMIN_PIN = "1197";
   let isAdmin = false;
-  let ratioBijiKopi = 0.3; // Default rasio, otomatis di-update dari Sheets
-
-  // PENYARING KETAT UNTUK MEMBUANG TEKS SAMPAH / HEADER
-  function isWadahSampah(nama) {
-    if (!nama) return true;
-    const u = nama.toString().toUpperCase().trim();
-    return (
-      u === '' ||
-      u === 'WADAH' ||
-      u === 'NAMA WADAH' ||
-      u === 'TARE' ||
-      u === 'MJ' ||
-      u === 'BERSIH' ||
-      u.includes('KALKULATOR') ||
-      u.includes('BIANG KOPI') ||
-      u.includes('INPUT') ||
-      u.includes('TIMBANGAN') ||
-      u.includes('BOTOL KOSONG') ||
-      u.includes('HASIL BERSIH') ||
-      u.includes('NETTO') ||
-      u.includes('KONVERSI')
-    );
-  }
+  let ratioBijiKopi = 0.3; // Default rasio
 
   function switchNav(tabId, btn) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -532,109 +509,102 @@
     if(tabId === 'tabKatalog') loadGoogleSheetsData();
   }
 
-  // Data Gramasi Wadah Utama (Fallback Aman)
-  const defaultData = [
+  let dataWadah = JSON.parse(localStorage.getItem('so_point_coffee_data')) || [
     { nama: "Biscoff Crunchy", tare: 33, mj: 1 },
-    { nama: "Botol Bening (Korken)", tare: 608, mj: 1 },
-    { nama: "Botol Kaca", tare: 418, mj: 0.74 },
-    { nama: "Botol Palm Sugar 1,3 kg", tare: 77, mj: 1 },
-    { nama: "Botol Pure Kiwi", tare: 305, mj: 0.80 },
-    { nama: "Botol Sirup Bulat", tare: 83, mj: 0.80 },
-    { nama: "Botol Sirup Kotak", tare: 78, mj: 0.80 },
-    { nama: "Botol Squeeze", tare: 40, mj: 1 },
-    { nama: "Box Powder", tare: 62, mj: 1 },
-    { nama: "Box Powder Seasoning", tare: 38, mj: 1 },
-    { nama: "Freshmilk 950 ml", tare: 34, mj: 0.97 },
-    { nama: "Ice Bulk 8 L", tare: 420, mj: 1 },
-    { nama: "Indomilk SKM / Pcs", tare: 15, mj: 1 },
-    { nama: "Kompan Gula Cair 5 kg", tare: 250, mj: 1 },
-    { nama: "Madu Uray", tare: 26.6, mj: 1 },
-    { nama: "Oreo / Pcs", tare: 0, mj: 1 },
-    { nama: "Ovomaltine Spread", tare: 37, mj: 1 },
-    { nama: "Toples Coffee Jelly", tare: 70, mj: 1 },
-    { nama: "Toples Crumb", tare: 650, mj: 1 },
-    { nama: "Toples Kaca Oreo", tare: 727, mj: 1 },
-    { nama: "Toples Tropical Jelly", tare: 65, mj: 1 },
-    { nama: "Whip Cream", tare: 51, mj: 0.97 },
-    { nama: "Yakult / Pcs", tare: 0, mj: 65 }
+    { nama: "Botol Bening (Korken)", tare: 608, mj: 1 }
   ];
+  function saveData() { localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); }
 
-  let rawStored = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
-  let dataWadah = rawStored.filter(item => !isWadahSampah(item.nama));
-  saveData();
-
-  function saveData() { 
-    localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); 
+  function parseCSV(text) {
+    let p = '', c = '', r = [];
+    let q = false;
+    let row = [''];
+    for (let i = 0; i < text.length; i++) {
+      c = text[i];
+      p = text[i - 1];
+      if (c === '"') {
+        if (q && text[i + 1] === '"') { row[row.length - 1] += '"'; i++; }
+        else { q = !q; }
+      } else if (c === ',' && !q) {
+        row.push('');
+      } else if ((c === '\r' || c === '\n') && !q) {
+        if (c === '\r' && text[i + 1] === '\n') { i++; }
+        r.push(row);
+        row = [''];
+      } else {
+        row[row.length - 1] += c;
+      }
+    }
+    if (row.length > 1 || row[0] !== '') { r.push(row); }
+    return r;
   }
 
-  /* BACA TAB GRAMASI & KALKULATOR BIANG KOPI DINAMIS DARI GOOGLE SHEETS */
+  /* 1. AMBIL DATA GRAMASI DARI TAB KAKULATOR PC */
   function loadGramasiFromSheets() {
-    if (!GRAMASI_GID) {
-      hitungGramasi();
-      hitungBiang();
-      return;
-    }
+    if (!GRAMASI_GID) { hitungGramasi(); return; }
 
-    const gramasiCsvUrl = SPREADSHEET_BASE_URL.includes('?') 
-      ? SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID + '&t=' + Date.now()
-      : SPREADSHEET_BASE_URL + '?gid=' + GRAMASI_GID + '&t=' + Date.now();
-
-    fetch(gramasiCsvUrl)
+    const url = SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID + '&t=' + Date.now();
+    fetch(url)
       .then(res => res.text())
       .then(csvText => {
         const rows = parseCSV(csvText);
         let parsedWadah = [];
-        let mulaiMembaca = false;
         
-        for (let i = 0; i < rows.length; i++) {
-          const row = rows[i];
+        rows.forEach(row => {
           const nama = (row[0] || '').trim();
           const tare = parseFloat((row[1] || '0').replace(',', '.')) || 0;
           const mj = parseFloat((row[2] || '1').replace(',', '.')) || 1;
           
           const namaUpper = nama.toUpperCase();
-
-          // Tangkap rasio konversi biji kopi dinamis dari sheets jika ada
-          if (namaUpper.includes('KONVERSI BIJI KOPI')) {
-            // Berdasarkan contoh sheets: baris netto misal 367 dan konversi biji kopi 110
-            ratioBijiKopi = tare / 367; 
-          }
-
-          // Mulai membaca tepat setelah menemukan baris header 'WADAH' atau 'NAMA WADAH'
-          if (namaUpper === 'WADAH' || namaUpper === 'NAMA WADAH') {
-            mulaiMembaca = true;
-            continue;
-          }
-
-          // Hentikan pembacaan otomatis saat menyentuh bagian bawah (Biang Kopi / Netto)
-          if (mulaiMembaca && (
-            namaUpper.includes('BIANG KOPI') || 
-            namaUpper.includes('INPUT') || 
-            namaUpper.includes('HASIL BERSIH') || 
-            namaUpper.includes('NETTO') || 
-            namaUpper.includes('KONVERSI')
-          )) {
-            break; 
-          }
-
-          // Masukkan item baru secara dinamis selama berada di rentang tabel wadah
-          if (mulaiMembaca && nama && !isWadahSampah(nama) && tare < 10000) {
+          if (nama && namaUpper !== 'WADAH' && namaUpper !== 'NAMA WADAH' && !namaUpper.includes('KALKULATOR')) {
             parsedWadah.push({ nama, tare, mj });
           }
-        }
+        });
 
         if (parsedWadah.length > 0) {
           dataWadah = parsedWadah;
           saveData();
         }
         hitungGramasi();
+      })
+      .catch(() => hitungGramasi());
+  }
+
+  /* 2. AMBIL DATA RASIO BIANG DARI TAB KALKULATOR BIANG */
+  function loadBiangFromSheets() {
+    if (!BIANG_GID) { hitungBiang(); return; }
+
+    const url = SPREADSHEET_BASE_URL + '&gid=' + BIANG_GID + '&t=' + Date.now();
+    fetch(url)
+      .then(res => res.text())
+      .then(csvText => {
+        const rows = parseCSV(csvText);
+        let nettoVal = 520;
+        let kopiVal = 156;
+
+        rows.forEach(row => {
+          const label = (row[0] || '').trim().toUpperCase();
+          const val = parseFloat((row[1] || '0').replace(',', '.')) || 0;
+          
+          if (label.includes('NETTO')) nettoVal = val;
+          if (label.includes('KONVERSI BIJI KOPI')) kopiVal = val;
+        });
+
+        if (nettoVal > 0 && kopiVal > 0) {
+          ratioBijiKopi = kopiVal / nettoVal;
+        }
         hitungBiang();
       })
-      .catch(err => {
-        console.warn("Gagal sinkronisasi Sheets:", err);
-        hitungGramasi();
-        hitungBiang();
-      });
+      .catch(() => hitungBiang());
+  }
+
+  function refreshAllData() {
+    loadGramasiFromSheets();
+    loadBiangFromSheets();
+    document.getElementById('timbanganGramasi').value = '';
+    document.getElementById('biangTimbangan').value = '';
+    document.getElementById('biangBotol').value = '';
+    hitungBiang();
   }
 
   function handleAuthButtonClick() {
@@ -653,17 +623,13 @@
   function openLoginModal() {
     const modal = document.getElementById('loginModal');
     const input = document.getElementById('inputPinAdmin');
-    const errorMsg = document.getElementById('modalErrorMsg');
-    
     input.value = '';
-    errorMsg.style.display = 'none';
+    document.getElementById('modalErrorMsg').style.display = 'none';
     modal.classList.add('open');
     setTimeout(() => input.focus(), 150);
   }
 
-  function closeLoginModal() {
-    document.getElementById('loginModal').classList.remove('open');
-  }
+  function closeLoginModal() { document.getElementById('loginModal').classList.remove('open'); }
 
   function togglePasswordVisibility() {
     const input = document.getElementById('inputPinAdmin');
@@ -680,8 +646,6 @@
   function submitAdminLogin(event) {
     event.preventDefault();
     const pinVal = document.getElementById('inputPinAdmin').value.trim();
-    const errorMsg = document.getElementById('modalErrorMsg');
-
     if (pinVal === ADMIN_PIN) {
       isAdmin = true;
       document.getElementById('appFrame').classList.add('is-admin');
@@ -691,7 +655,7 @@
       closeLoginModal();
       updateAdminView();
     } else {
-      errorMsg.style.display = 'block';
+      document.getElementById('modalErrorMsg').style.display = 'block';
       document.getElementById('inputPinAdmin').focus();
     }
   }
@@ -715,8 +679,6 @@
     tbody.innerHTML = '';
 
     dataWadah.forEach((item, index) => {
-      if (isWadahSampah(item.nama)) return;
-
       let hasil = item.nama.includes("Yakult") 
         ? Math.round(input * item.mj) 
         : Math.round((input - item.tare) * item.mj);
@@ -743,14 +705,9 @@
   function editGramasiDirect(index, field, val) {
     if (!isAdmin) return;
     let cleanVal = val.replace(',', '.').trim();
-
-    if (field === 'nama') {
-      dataWadah[index].nama = cleanVal || "Item Baru";
-    } else if (field === 'tare') {
-      dataWadah[index].tare = parseFloat(cleanVal) || 0;
-    } else if (field === 'mj') {
-      dataWadah[index].mj = parseFloat(cleanVal) || 1;
-    }
+    if (field === 'nama') dataWadah[index].nama = cleanVal || "Item Baru";
+    else if (field === 'tare') dataWadah[index].tare = parseFloat(cleanVal) || 0;
+    else if (field === 'mj') dataWadah[index].mj = parseFloat(cleanVal) || 1;
 
     saveData();
     hitungGramasi();
@@ -761,33 +718,24 @@
     const nama = document.getElementById('newNama').value.trim();
     const tare = parseFloat(document.getElementById('newTare').value) || 0;
     const mj = parseFloat(document.getElementById('newMj').value) || 1;
-    
     if (!nama) return alert("Nama wadah wajib diisi!");
 
     const newItem = { nama, tare, mj };
-
     dataWadah.push(newItem);
     urutkanAbjad();
 
     document.getElementById('newNama').value = '';
     document.getElementById('newTare').value = '';
     document.getElementById('newMj').value = '';
-
     kirimGramasiKeSheets(newItem);
   }
 
   function kirimGramasiKeSheets(item) {
-    if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI') {
+    if (APPS_SCRIPT_URL) {
       fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
+        method: "POST", mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "updateGramasi",
-          nama: item.nama,
-          tare: item.tare,
-          mj: item.mj
-        })
+        body: JSON.stringify({ action: "updateGramasi", nama: item.nama, tare: item.tare, mj: item.mj })
       });
     }
   }
@@ -819,58 +767,21 @@
     document.getElementById('resAir').innerText = netto - kopi;
   }
 
-  function resetForm() {
-    document.getElementById('timbanganGramasi').value = '';
-    document.getElementById('biangTimbangan').value = '';
-    document.getElementById('biangBotol').value = '';
-    hitungGramasi(); hitungBiang();
-    loadGramasiFromSheets();
-  }
-
-  // LOGIKA MULTI-KATEGORI KATALOG PLU
+  // LOGIKA KATALOG PLU
   let structuredKatalog = {};
   let categoryRenames = JSON.parse(localStorage.getItem('so_cat_renames')) || {};
-
-  function parseCSV(text) {
-    let p = '', c = '', r = [];
-    let q = false;
-    let row = [''];
-    for (let i = 0; i < text.length; i++) {
-      c = text[i];
-      p = text[i - 1];
-      if (c === '"') {
-        if (q && text[i + 1] === '"') { row[row.length - 1] += '"'; i++; }
-        else { q = !q; }
-      } else if (c === ',' && !q) {
-        row.push('');
-      } else if ((c === '\r' || c === '\n') && !q) {
-        if (c === '\r' && text[i + 1] === '\n') { i++; }
-        r.push(row);
-        row = [''];
-      } else {
-        row[row.length - 1] += c;
-      }
-    }
-    if (row.length > 1 || row[0] !== '') { r.push(row); }
-    return r;
-  }
 
   function processRow(colNama, colRaw, colKonv, currentCategory) {
     const name = (colNama || '').trim();
     const raw = (colRaw || '').trim();
     const konv = (colKonv || '').trim();
-
     if (!name) return currentCategory;
 
     const isCat = name && (!raw || raw === '-') && (!konv || konv === '-') && name.toUpperCase() !== 'DESKRIPSI BARANG';
     if (isCat) {
       let catName = name.toUpperCase();
       let targetCat = (catName === 'MAIN PACKAGING' || catName === 'SECONDARY SUPPLIES') ? 'SARANA' : catName;
-      
-      if (categoryRenames[targetCat]) {
-        targetCat = categoryRenames[targetCat];
-      }
-
+      if (categoryRenames[targetCat]) targetCat = categoryRenames[targetCat];
       if (!structuredKatalog[targetCat]) structuredKatalog[targetCat] = [];
       return targetCat;
     }
@@ -884,16 +795,12 @@
         pluKonversi: (konv && konv !== '-') ? konv : null
       });
     }
-
     return currentCategory;
   }
 
   function loadGoogleSheetsData() {
-    const urlWithCacheBuster = SPREADSHEET_BASE_URL.includes('?') 
-      ? SPREADSHEET_BASE_URL + '&t=' + Date.now() 
-      : SPREADSHEET_BASE_URL + '?t=' + Date.now();
-
-    fetch(urlWithCacheBuster)
+    const url = SPREADSHEET_BASE_URL.includes('?') ? SPREADSHEET_BASE_URL + '&t=' + Date.now() : SPREADSHEET_BASE_URL + '?t=' + Date.now();
+    fetch(url)
       .then(res => res.text())
       .then(csvText => {
         const rows = parseCSV(csvText);
@@ -902,21 +809,18 @@
         structuredKatalog = {};
         let catA = "LAIN-LAIN";
         let catE = "SARANA";
-
         if (categoryRenames["SARANA"]) catE = categoryRenames["SARANA"];
 
         rows.forEach(row => {
           catA = processRow(row[0], row[1], row[2], catA);
-          if (row.length >= 5) {
-            catE = processRow(row[4], row[5], row[6], catE);
-          }
+          if (row.length >= 5) catE = processRow(row[4], row[5], row[6], catE);
         });
 
         sortKatalogAbjad(false);
         renderAccordion(structuredKatalog);
       })
       .catch(() => {
-        document.getElementById('katalogAccordion').innerHTML = `<div style="text-align:center; color:var(--danger); padding:20px;">Gagal memuat data dari Spreadsheet.</div>`;
+        document.getElementById('katalogAccordion').innerHTML = `<div style="text-align:center; color:var(--danger); padding:20px;">Gagal memuat katalog.</div>`;
       });
   }
 
@@ -925,14 +829,14 @@
       structuredKatalog[cat].sort((a, b) => a.nama.localeCompare(b.nama));
     });
     renderAccordion(structuredKatalog);
-    if (showNotification) alert("Seluruh Katalog PLU berhasil diurutkan sesuai abjad A-Z!");
+    if (showNotification) alert("Katalog berhasil diurutkan A-Z!");
   }
 
   function renderAccordion(katalogData, forceOpen = false) {
     const container = document.getElementById('katalogAccordion');
     let accordionHTML = '';
-
     const categories = Object.keys(katalogData);
+    
     if (categories.length === 0) {
       container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px;">Barang tidak ditemukan.</div>`;
       return;
@@ -955,8 +859,7 @@
             <div class="plu-card-header">
               <div class="plu-title" contenteditable="${isAdmin}" onblur="editPluDirect('${cat}', ${index}, 'nama', this.innerText)">${item.nama}</div>
               <div class="plu-badge-container">
-                ${rawBadge}
-                ${konvBadge}
+                ${rawBadge} ${konvBadge}
                 <button class="btn-sm btn-del admin-only" style="display: ${isAdmin ? 'inline-block' : 'none'}; padding: 2px 5px;" onclick="hapusPluAdmin('${cat}', ${index})">✕</button>
               </div>
             </div>
@@ -973,41 +876,29 @@
               <i class="ri-arrow-down-s-line"></i>
             </span>
           </div>
-          <div class="category-content">
-            ${itemsHTML}
-          </div>
+          <div class="category-content">${itemsHTML}</div>
         </div>
       `;
     });
-
     container.innerHTML = accordionHTML;
   }
 
-  function toggleCategory(event, headerEl) {
-    headerEl.parentElement.classList.toggle('open');
-  }
+  function toggleCategory(event, headerEl) { headerEl.parentElement.classList.toggle('open'); }
 
   function editCategoryName(oldCatName, newCatText) {
     if (!isAdmin) return;
     const cleanNewCat = newCatText.trim().toUpperCase();
     if (!cleanNewCat || cleanNewCat === oldCatName) return;
-
     categoryRenames[oldCatName] = cleanNewCat;
     localStorage.setItem('so_cat_renames', JSON.stringify(categoryRenames));
-
     structuredKatalog[cleanNewCat] = structuredKatalog[oldCatName];
     delete structuredKatalog[oldCatName];
-
     renderAccordion(structuredKatalog, true);
   }
 
   function filterKatalog() {
     const kw = document.getElementById('searchKatalog').value.toLowerCase();
-    
-    if (!kw) {
-      renderAccordion(structuredKatalog, false);
-      return;
-    }
+    if (!kw) { renderAccordion(structuredKatalog, false); return; }
 
     let filteredResult = {};
     Object.keys(structuredKatalog).forEach(cat => {
@@ -1016,11 +907,8 @@
         (item.pluRaw && item.pluRaw.toLowerCase().includes(kw)) ||
         (item.pluKonversi && item.pluKonversi.toLowerCase().includes(kw))
       );
-      if (matchedItems.length > 0) {
-        filteredResult[cat] = matchedItems;
-      }
+      if (matchedItems.length > 0) filteredResult[cat] = matchedItems;
     });
-
     renderAccordion(filteredResult, true);
   }
 
@@ -1029,42 +917,26 @@
     const nama = document.getElementById('newPluNama').value.trim();
     const raw = document.getElementById('newPluRaw').value.trim();
     const konv = document.getElementById('newPluKonv').value.trim();
-
     if (!kategori || !nama) return alert("Kategori dan Nama Barang wajib diisi!");
 
     const btn = document.getElementById('btnSimpanPlu');
-    btn.innerText = "Menyimpan ke Google Sheets...";
-    btn.disabled = true;
-
-    const payload = {
-      action: "tambahPlu",
-      kategori: kategori,
-      nama: nama,
-      pluRaw: raw,
-      pluKonversi: konv
-    };
+    btn.innerText = "Menyimpan..."; btn.disabled = true;
 
     fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
+      method: "POST", mode: "no-cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    .then(() => {
-      alert("Berhasil! Barang baru sudah tersimpan di Google Sheets dan bisa langsung dilihat oleh semua staf.");
+      body: JSON.stringify({ action: "tambahPlu", kategori, nama, pluRaw: raw, pluKonversi: konv })
+    }).then(() => {
+      alert("Berhasil disimpan ke Google Sheets!");
       document.getElementById('newPluCat').value = '';
       document.getElementById('newPluNama').value = '';
       document.getElementById('newPluRaw').value = '';
       document.getElementById('newPluKonv').value = '';
-      btn.innerText = "+ Simpan Ke Google Sheets";
-      btn.disabled = false;
-      
+      btn.innerText = "+ Simpan Ke Google Sheets"; btn.disabled = false;
       setTimeout(loadGoogleSheetsData, 1500);
-    })
-    .catch(err => {
-      alert("Gagal menyambung ke Google Sheets: " + err);
-      btn.innerText = "+ Simpan Ke Google Sheets";
-      btn.disabled = false;
+    }).catch(err => {
+      alert("Gagal: " + err);
+      btn.innerText = "+ Simpan Ke Google Sheets"; btn.disabled = false;
     });
   }
 
@@ -1072,24 +944,23 @@
     if (!isAdmin) return;
     const item = structuredKatalog[kategori][index];
     let cleanText = text.replace('+ RAW', '').replace('+ KONV', '').trim();
-
     if (field === 'nama') item.nama = cleanText || "Nama Barang";
     else if (field === 'raw') item.pluRaw = (cleanText && cleanText !== '-') ? cleanText : null;
     else if (field === 'konv') item.pluKonversi = (cleanText && cleanText !== '-') ? cleanText : null;
-
     renderAccordion(structuredKatalog, true);
   }
 
   function hapusPluAdmin(kategori, index) {
     const item = structuredKatalog[kategori][index];
-    if (confirm(`Hapus ${item.nama} dari tampilan katalog lokal?`)) {
+    if (confirm(`Hapus ${item.nama}?`)) {
       structuredKatalog[kategori].splice(index, 1);
       renderAccordion(structuredKatalog, true);
     }
   }
 
-  // Inisialisasi Aplikasi Utama
+  // Inisialisasi awal aplikasi
   loadGramasiFromSheets();
+  loadBiangFromSheets();
 </script>
 
 </body>
