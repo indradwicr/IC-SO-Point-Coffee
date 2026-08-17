@@ -273,7 +273,7 @@
   }
   .btn-submit-login:active { transform: scale(0.98); }
 
-  /* PERBAIKAN TATA LETAK DESKTOP YANG LEBIH PROPOSIONAL & ESTETIK */
+  /* TATA LETAK DESKTOP */
   @media (min-width: 768px) {
     .app-frame {
       max-width: 1100px;
@@ -287,7 +287,6 @@
       border-radius: 0 0 24px 24px;
     }
 
-    /* Mengatur grid agar kiri dan kanan terbagi rata (2 Kolom) */
     .kalkulator-grid {
       display: grid;
       grid-template-columns: 380px 1fr;
@@ -300,13 +299,11 @@
       margin: 0 0 16px 0;
     }
 
-    /* Kolom kiri digabung rapi untuk Input & Biang Kopi */
     .kolom-kiri {
       display: flex;
       flex-direction: column;
     }
 
-    /* Tabel Wadah di kanan diberi tinggi maksimal dan bisa di-scroll mandiri agar tidak melar */
     .card-daftar-gramasi {
       margin: 0 !important;
     }
@@ -317,7 +314,6 @@
       padding-right: 4px;
     }
     
-    /* Mempercantik Scrollbar Tabel */
     .tabel-wadah-container::-webkit-scrollbar {
       width: 6px;
     }
@@ -361,7 +357,7 @@
   <div id="tabKalkulator" class="tab-content active">
     <div class="kalkulator-grid">
       
-      <!-- KOLOM KIRI: INPUT GRAMASI & BIANG KOPI -->
+      <!-- KOLOM KIRI (DI DESKTOP) / ATAS (DI MOBILE) -->
       <div class="kolom-kiri">
         <div class="card">
           <div class="card-title"><i class="ri-scales-3-line" style="color:var(--primary)"></i> Input SO Gramasi</div>
@@ -371,7 +367,47 @@
           </div>
         </div>
 
-        <div class="card">
+        <!-- SO BIANG KOPI: Di mobile posisinya otomatis pindah ke bawah karena berada di dlm .kolom-kiri yang fleksibel jika diatur atau kita pisah urutannya -->
+      </div>
+
+      <!-- KONTEN UTAMA HALAMAN UTAMA -->
+      <div style="display: contents;">
+        
+        <!-- Kartu Daftar Wadah -->
+        <div class="card card-daftar-gramasi" style="order: 1;">
+          <div class="card-title" style="justify-content: space-between; margin-bottom: 10px;">
+            <span><i class="ri-list-check-2" style="color:var(--dark-green)"></i> Daftar Gramasi Wadah</span>
+            <button class="btn-sm admin-only" style="background:var(--primary-light); color:var(--primary)" onclick="urutkanAbjad()">Sort A-Z</button>
+          </div>
+
+          <div class="tabel-wadah-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>WADAH</th>
+                  <th>TARE</th>
+                  <th>MJ</th>
+                  <th>BERSIH</th>
+                  <th class="admin-only">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="tabelGramasi"></tbody>
+            </table>
+          </div>
+
+          <!-- Form Tambah Wadah Khusus Admin -->
+          <div class="admin-only" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+            <input type="text" id="newNama" class="search-input" placeholder="Nama Wadah Baru" style="padding-left:14px; margin-bottom:8px;">
+            <div style="display:flex; gap:8px;">
+              <input type="number" id="newTare" class="search-input" placeholder="Tare (gr)" style="padding-left:14px;">
+              <input type="number" id="newMj" class="search-input" placeholder="MJ" step="0.01" style="padding-left:14px;">
+              <button class="btn-sm" style="background:var(--primary); color:#fff; width:100px;" onclick="tambahItem()">Tambah</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kartu SO Biang Kopi: Ditaruh di bawah Daftar Wadah untuk Mobile, di kiri untuk Desktop -->
+        <div class="card" id="cardBiangKopi" style="order: 2;">
           <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
           <div class="input-row">
             <label for="biangTimbangan">Total Timbangan</label>
@@ -397,40 +433,7 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- KOLOM KANAN: DAFTAR GRAMASI WADAH -->
-      <div class="card card-daftar-gramasi">
-        <div class="card-title" style="justify-content: space-between; margin-bottom: 10px;">
-          <span><i class="ri-list-check-2" style="color:var(--dark-green)"></i> Daftar Gramasi Wadah</span>
-          <button class="btn-sm admin-only" style="background:var(--primary-light); color:var(--primary)" onclick="urutkanAbjad()">Sort A-Z</button>
-        </div>
-
-        <!-- Kontainer dengan scroll mandiri agar tidak melar ke bawah -->
-        <div class="tabel-wadah-container">
-          <table>
-            <thead>
-              <tr>
-                <th>WADAH</th>
-                <th>TARE</th>
-                <th>MJ</th>
-                <th>BERSIH</th>
-                <th class="admin-only">AKSI</th>
-              </tr>
-            </thead>
-            <tbody id="tabelGramasi"></tbody>
-          </table>
-        </div>
-
-        <!-- Form Tambah Wadah Khusus Admin -->
-        <div class="admin-only" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-          <input type="text" id="newNama" class="search-input" placeholder="Nama Wadah Baru" style="padding-left:14px; margin-bottom:8px;">
-          <div style="display:flex; gap:8px;">
-            <input type="number" id="newTare" class="search-input" placeholder="Tare (gr)" style="padding-left:14px;">
-            <input type="number" id="newMj" class="search-input" placeholder="MJ" step="0.01" style="padding-left:14px;">
-            <button class="btn-sm" style="background:var(--primary); color:#fff; width:100px;" onclick="tambahItem()">Tambah</button>
-          </div>
-        </div>
       </div>
 
     </div>
