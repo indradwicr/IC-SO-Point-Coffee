@@ -489,7 +489,7 @@
 <script>
   const SPREADSHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTh44Pn8778u8iW9A9QA1UyYeHj_zO2RQET5gUlhPpua48_MA6XCy0HY6zKAeOGpS9UdT8ogPkzvKo0/pub?output=csv';
   
-  // GID TAB TERPISAH
+  // GID TAB TERPISAH YANG AKURAT
   const GRAMASI_GID = '2064100982'; // Tab: Kalkulator PC
   const BIANG_GID = '1208855579';    // Tab: Kalkulator Biang
   
@@ -539,11 +539,11 @@
     return r;
   }
 
-  /* 1. AMBIL DATA GRAMASI DARI TAB KAKULATOR PC */
+  /* 1. AMBIL DATA GRAMASI ANTI-CACHE DARI TAB KAKULATOR PC */
   function loadGramasiFromSheets() {
     if (!GRAMASI_GID) { hitungGramasi(); return; }
 
-    const url = SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID + '&t=' + Date.now();
+    const url = `${SPREADSHEET_BASE_URL}&gid=${GRAMASI_GID}&nocache=${Date.now()}`;
     fetch(url)
       .then(res => res.text())
       .then(csvText => {
@@ -570,11 +570,11 @@
       .catch(() => hitungGramasi());
   }
 
-  /* 2. AMBIL DATA RASIO BIANG DARI TAB KALKULATOR BIANG */
+  /* 2. AMBIL DATA RASIO BIANG ANTI-CACHE DARI TAB KALKULATOR BIANG */
   function loadBiangFromSheets() {
     if (!BIANG_GID) { hitungBiang(); return; }
 
-    const url = SPREADSHEET_BASE_URL + '&gid=' + BIANG_GID + '&t=' + Date.now();
+    const url = `${SPREADSHEET_BASE_URL}&gid=${BIANG_GID}&nocache=${Date.now()}`;
     fetch(url)
       .then(res => res.text())
       .then(csvText => {
@@ -601,10 +601,12 @@
   function refreshAllData() {
     loadGramasiFromSheets();
     loadBiangFromSheets();
-    document.getElementById('timbanganGramasi').value = '';
-    document.getElementById('biangTimbangan').value = '';
-    document.getElementById('biangBotol').value = '';
+    document.getElementById('timbanganGramasi').value = '932';
+    document.getElementById('biangTimbangan').value = '947';
+    document.getElementById('biangBotol').value = '680';
+    hitungGramasi();
     hitungBiang();
+    alert("Data berhasil disegarkan dari Google Sheets!");
   }
 
   function handleAuthButtonClick() {
@@ -799,7 +801,7 @@
   }
 
   function loadGoogleSheetsData() {
-    const url = SPREADSHEET_BASE_URL.includes('?') ? SPREADSHEET_BASE_URL + '&t=' + Date.now() : SPREADSHEET_BASE_URL + '?t=' + Date.now();
+    const url = `${SPREADSHEET_BASE_URL}&nocache=${Date.now()}`;
     fetch(url)
       .then(res => res.text())
       .then(csvText => {
