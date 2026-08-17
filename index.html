@@ -489,6 +489,10 @@
 <script>
   const SPREADSHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTh44Pn8778u8iW9A9QA1UyYeHj_zO2RQET5gUlhPpua48_MA6XCy0HY6zKAeOGpS9UdT8ogPkzvKo0/pub?output=csv';
   
+  // GID TAB TERPISAH YANG AKURAT
+  const GRAMASI_GID = '2064100982'; // Tab: Kalkulator PC
+  const BIANG_GID = '1208855579';    // Tab: Kalkulator Biang
+  
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1OtQ6ngQ9KUX96bPJtGzsRX0XCbmu4lEA_q1aAM96AtBMRRqWe9YTwmc0ceyG2kpDzw/exec'; 
 
   const ADMIN_PIN = "1197";
@@ -535,9 +539,11 @@
     return r;
   }
 
-  /* 1. AMBIL DATA GRAMASI ANTI-CACHE */
+  /* 1. AMBIL DATA GRAMASI ANTI-CACHE DARI TAB KAKULATOR PC */
   function loadGramasiFromSheets() {
-    const url = `${SPREADSHEET_BASE_URL}&nocache=${Date.now()}`;
+    if (!GRAMASI_GID) { hitungGramasi(); return; }
+
+    const url = `${SPREADSHEET_BASE_URL}&gid=${GRAMASI_GID}&nocache=${Date.now()}`;
     fetch(url)
       .then(res => res.text())
       .then(csvText => {
@@ -550,8 +556,7 @@
           const mj = parseFloat((row[2] || '1').replace(',', '.')) || 1;
           
           const namaUpper = nama.toUpperCase();
-          // Hanya masukkan baris wadah yang valid, abaikan teks kalkulator/biang
-          if (nama && !namaUpper.includes('KALKULATOR') && !namaUpper.includes('INPUT') && !namaUpper.includes('NETTO') && namaUpper !== 'WADAH' && namaUpper !== 'NAMA WADAH') {
+          if (nama && namaUpper !== 'WADAH' && namaUpper !== 'NAMA WADAH' && !namaUpper.includes('KALKULATOR')) {
             parsedWadah.push({ nama, tare, mj });
           }
         });
@@ -565,9 +570,11 @@
       .catch(() => hitungGramasi());
   }
 
-  /* 2. AMBIL DATA RASIO BIANG KOPI SECARA PINTAR DARI SEL APAPUN */
+  /* 2. AMBIL DATA RASIO BIANG ANTI-CACHE DARI TAB KALKULATOR BIANG */
   function loadBiangFromSheets() {
-    const url = `${SPREADSHEET_BASE_URL}&nocache=${Date.now()}`;
+    if (!BIANG_GID) { hitungBiang(); return; }
+
+    const url = `${SPREADSHEET_BASE_URL}&gid=${BIANG_GID}&nocache=${Date.now()}`;
     fetch(url)
       .then(res => res.text())
       .then(csvText => {
@@ -576,17 +583,11 @@
         let kopiVal = 156;
 
         rows.forEach(row => {
-          for (let i = 0; i < row.length; i++) {
-            const cellText = (row[i] || '').trim().toUpperCase();
-            if (cellText.includes('INPUT TIMBANGAN')) {
-              const valSebelah = parseFloat((row[i+1] || '0').replace(',', '.')) || 0;
-              if (valSebelah > 0) nettoVal = valSebelah;
-            }
-            if (cellText.includes('KONVERSI BIJI KOPI')) {
-              const valSebelah = parseFloat((row[i+1] || '0').replace(',', '.')) || 0;
-              if (valSebelah > 0) kopiVal = valSebelah;
-            }
-          }
+          const label = (row[0] || '').trim().toUpperCase();
+          const val = parseFloat((row[1] || '0').replace(',', '.')) || 0;
+          
+          if (label.includes('NETTO')) nettoVal = val;
+          if (label.includes('KONVERSI BIJI KOPI')) kopiVal = val;
         });
 
         if (nettoVal > 0 && kopiVal > 0) {
@@ -813,9 +814,6 @@
         if (categoryRenames["SARANA"]) catE = categoryRenames["SARANA"];
 
         rows.forEach(row => {
-          const cekBaris = (row[0] || '').toUpperCase();
-          if (cekBaris.includes('KALKULATOR') || cekBaris.includes('INPUT TIMBANGAN') || cekBaris.includes('NETTO')) return;
-
           catA = processRow(row[0], row[1], row[2], catA);
           if (row.length >= 5) catE = processRow(row[4], row[5], row[6], catE);
         });
