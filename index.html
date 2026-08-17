@@ -41,6 +41,7 @@
     padding-bottom: 90px;
     position: relative;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    transition: max-width 0.3s ease;
   }
 
   /* Header Section */
@@ -110,6 +111,12 @@
   /* Tab View Control */
   .tab-content { display: none; }
   .tab-content.active { display: block; }
+
+  /* Layout Grid untuk Kalkulator di Desktop */
+  .kalkulator-grid {
+    display: flex;
+    flex-direction: column;
+  }
 
   /* Sticky Search Bar */
   .search-container {
@@ -191,6 +198,7 @@
     display: flex; justify-content: space-around; align-items: center;
     padding: 10px 0 16px; border-radius: 24px 24px 0 0;
     box-shadow: 0 -5px 25px rgba(0,0,0,0.05); z-index: 99;
+    transition: max-width 0.3s ease;
   }
   .nav-item {
     display: flex; flex-direction: column; align-items: center;
@@ -213,6 +221,44 @@
   .btn-sm { padding: 4px 8px; border-radius: 6px; border: none; font-size: 11px; font-weight: bold; cursor: pointer; }
   .btn-del { background: #fee2e2; color: var(--danger); }
   .btn-move { background: #f1f5f9; color: var(--text-main); }
+
+  /* MEDIA QUERIES UNTUK DESKTOP / LAYAR LEBAR */
+  @media (min-width: 768px) {
+    .app-frame {
+      max-width: 1020px;
+      margin: 20px 0;
+      border-radius: 24px;
+      min-height: calc(100vh - 40px);
+    }
+
+    .bottom-nav {
+      max-width: 1020px;
+      border-radius: 0 0 24px 24px;
+    }
+
+    /* Membagi layout kalkulator menjadi 2 kolom di desktop */
+    .kalkulator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 0 20px;
+    }
+
+    .kalkulator-grid .card {
+      margin: 0;
+    }
+
+    .kalkulator-grid .card-daftar-gramasi {
+      grid-row: span 2;
+    }
+
+    /* Mengatur kartu katalog PLU di desktop agar menjadi grid 2 kolom */
+    .category-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -233,67 +279,69 @@
 
   <!-- TAB 1: KALKULATOR SO GRAMASI -->
   <div id="tabKalkulator" class="tab-content active">
-    <div class="card">
-      <div class="card-title"><i class="ri-scales-3-line" style="color:var(--primary)"></i> Input SO Gramasi</div>
-      <div class="input-row">
-        <label for="timbanganGramasi">Berat Timbangan (gr)</label>
-        <input type="number" id="timbanganGramasi" value="932" oninput="hitungGramasi()">
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title" style="justify-content: space-between;">
-        <span><i class="ri-list-check-2" style="color:var(--dark-green)"></i> Daftar Gramasi Wadah</span>
-        <button class="btn-sm admin-only" style="background:var(--primary-light); color:var(--primary)" onclick="urutkanAbjad()">Sort A-Z</button>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>WADAH</th>
-            <th>TARE</th>
-            <th>MJ</th>
-            <th>BERSIH</th>
-            <th class="admin-only">AKSI</th>
-          </tr>
-        </thead>
-        <tbody id="tabelGramasi"></tbody>
-      </table>
-
-      <!-- Form Tambah Wadah Khusus Admin -->
-      <div class="admin-only" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-        <input type="text" id="newNama" class="search-input" placeholder="Nama Wadah Baru" style="padding-left:14px; margin-bottom:8px;">
-        <div style="display:flex; gap:8px;">
-          <input type="number" id="newTare" class="search-input" placeholder="Tare (gr)" style="padding-left:14px;">
-          <input type="number" id="newMj" class="search-input" placeholder="MJ" step="0.01" style="padding-left:14px;">
-          <button class="btn-sm" style="background:var(--primary); color:#fff; width:100px;" onclick="tambahItem()">Tambah</button>
+    <div class="kalkulator-grid">
+      <div class="card">
+        <div class="card-title"><i class="ri-scales-3-line" style="color:var(--primary)"></i> Input SO Gramasi</div>
+        <div class="input-row">
+          <label for="timbanganGramasi">Berat Timbangan (gr)</label>
+          <input type="number" id="timbanganGramasi" value="932" oninput="hitungGramasi()">
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
-      <div class="input-row">
-        <label for="biangTimbangan">Total Timbangan</label>
-        <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
-      </div>
-      <div class="input-row">
-        <label for="biangBotol">Berat Botol Kosong</label>
-        <input type="number" id="biangBotol" value="680" oninput="hitungBiang()">
+      <div class="card card-daftar-gramasi">
+        <div class="card-title" style="justify-content: space-between;">
+          <span><i class="ri-list-check-2" style="color:var(--dark-green)"></i> Daftar Gramasi Wadah</span>
+          <button class="btn-sm admin-only" style="background:var(--primary-light); color:var(--primary)" onclick="urutkanAbjad()">Sort A-Z</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>WADAH</th>
+              <th>TARE</th>
+              <th>MJ</th>
+              <th>BERSIH</th>
+              <th class="admin-only">AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tabelGramasi"></tbody>
+        </table>
+
+        <!-- Form Tambah Wadah Khusus Admin -->
+        <div class="admin-only" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+          <input type="text" id="newNama" class="search-input" placeholder="Nama Wadah Baru" style="padding-left:14px; margin-bottom:8px;">
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="newTare" class="search-input" placeholder="Tare (gr)" style="padding-left:14px;">
+            <input type="number" id="newMj" class="search-input" placeholder="MJ" step="0.01" style="padding-left:14px;">
+            <button class="btn-sm" style="background:var(--primary); color:#fff; width:100px;" onclick="tambahItem()">Tambah</button>
+          </div>
+        </div>
       </div>
 
-      <div style="background: var(--bg-main); padding: 12px; border-radius: 12px; margin-top: 10px;">
-        <div class="input-row" style="margin-bottom: 6px;">
-          <span style="font-size:12px; color:var(--text-muted)">Hasil Netto</span>
-          <span class="bold" id="resNetto">267</span>
+      <div class="card">
+        <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
+        <div class="input-row">
+          <label for="biangTimbangan">Total Timbangan</label>
+          <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
         </div>
-        <div class="input-row" style="margin-bottom: 6px;">
-          <span style="font-size:12px; color:var(--text-muted)">Konversi Biji Kopi</span>
-          <span class="bold" id="resKopi">80</span>
+        <div class="input-row">
+          <label for="biangBotol">Berat Botol Kosong</label>
+          <input type="number" id="biangBotol" value="680" oninput="hitungBiang()">
         </div>
-        <div class="input-row" style="margin-bottom: 0;">
-          <span style="font-size:12px; color:var(--text-muted)">Konversi Air Mineral</span>
-          <span class="bold" id="resAir">187</span>
+
+        <div style="background: var(--bg-main); padding: 12px; border-radius: 12px; margin-top: 10px;">
+          <div class="input-row" style="margin-bottom: 6px;">
+            <span style="font-size:12px; color:var(--text-muted)">Hasil Netto</span>
+            <span class="bold" id="resNetto">267</span>
+          </div>
+          <div class="input-row" style="margin-bottom: 6px;">
+            <span style="font-size:12px; color:var(--text-muted)">Konversi Biji Kopi</span>
+            <span class="bold" id="resKopi">80</span>
+          </div>
+          <div class="input-row" style="margin-bottom: 0;">
+            <span style="font-size:12px; color:var(--text-muted)">Konversi Air Mineral</span>
+            <span class="bold" id="resAir">187</span>
+          </div>
         </div>
       </div>
     </div>
@@ -460,65 +508,66 @@
   }
 
   // 1. Edit Langsung Teks/Angka Gramasi oleh Admin
-function editGramasiDirect(index, field, val) {
-  if (!isAdmin) return;
-  let cleanVal = val.replace(',', '.').trim();
+  function editGramasiDirect(index, field, val) {
+    if (!isAdmin) return;
+    let cleanVal = val.replace(',', '.').trim();
 
-  if (field === 'nama') {
-    dataWadah[index].nama = cleanVal || "Item Baru";
-  } else if (field === 'tare') {
-    dataWadah[index].tare = parseFloat(cleanVal) || 0;
-  } else if (field === 'mj') {
-    dataWadah[index].mj = parseFloat(cleanVal) || 1;
+    if (field === 'nama') {
+      dataWadah[index].nama = cleanVal || "Item Baru";
+    } else if (field === 'tare') {
+      dataWadah[index].tare = parseFloat(cleanVal) || 0;
+    } else if (field === 'mj') {
+      dataWadah[index].mj = parseFloat(cleanVal) || 1;
+    }
+
+    // Update langsung di layar HP & simpan ke memori lokal
+    saveData();
+    hitungGramasi();
+
+    // Kirim update ke Google Sheets di background (opsional)
+    kirimGramasiKeSheets(dataWadah[index]);
   }
 
-  // Update langsung di layar HP & simpan ke memori lokal
-  saveData();
-  hitungGramasi();
+  // 2. Tambah Wadah Baru dari Form Admin
+  function tambahItem() {
+    const nama = document.getElementById('newNama').value.trim();
+    const tare = parseFloat(document.getElementById('newTare').value) || 0;
+    const mj = parseFloat(document.getElementById('newMj').value) || 1;
+    
+    if (!nama) return alert("Nama wadah wajib diisi!");
 
-  // Kirim update ke Google Sheets di background (opsional)
-  kirimGramasiKeSheets(dataWadah[index]);
-}
+    const newItem = { nama, tare, mj };
 
-// 2. Tambah Wadah Baru dari Form Admin
-function tambahItem() {
-  const nama = document.getElementById('newNama').value.trim();
-  const tare = parseFloat(document.getElementById('newTare').value) || 0;
-  const mj = parseFloat(document.getElementById('newMj').value) || 1;
-  
-  if (!nama) return alert("Nama wadah wajib diisi!");
+    // Update langsung di layar HP
+    dataWadah.push(newItem);
+    urutkanAbjad();
 
-  const newItem = { nama, tare, mj };
+    // Reset Input Form
+    document.getElementById('newNama').value = '';
+    document.getElementById('newTare').value = '';
+    document.getElementById('newMj').value = '';
 
-  // Update langsung di layar HP
-  dataWadah.push(newItem);
-  urutkanAbjad();
-
-  // Reset Input Form
-  document.getElementById('newNama').value = '';
-  document.getElementById('newTare').value = '';
-  document.getElementById('newMj').value = '';
-
-  // Kirim ke Google Sheets di background
-  kirimGramasiKeSheets(newItem);
-}
-
-// Fungsi Helper Kirim Data Gramasi ke Google Sheets
-function kirimGramasiKeSheets(item) {
-  if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI') {
-    fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "updateGramasi",
-        nama: item.nama,
-        tare: item.tare,
-        mj: item.mj
-      })
-    });
+    // Kirim ke Google Sheets di background
+    kirimGramasiKeSheets(newItem);
   }
-}
+
+  // Fungsi Helper Kirim Data Gramasi ke Google Sheets
+  function kirimGramasiKeSheets(item) {
+    if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI') {
+      fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateGramasi",
+          nama: item.nama,
+          tare: item.tare,
+          mj: item.mj
+        })
+      });
+    }
+  }
+
   function hapusItem(index) {
     if (confirm(`Hapus ${dataWadah[index].nama}?`)) {
       dataWadah.splice(index, 1);
