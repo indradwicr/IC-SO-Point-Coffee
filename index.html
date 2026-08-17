@@ -114,7 +114,7 @@
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
-  /* DEFAULT MOBILE ORDER (1: Input Gramasi, 2: Daftar Wadah, 3: Biang Kopi) */
+  /* DEFAULT MOBILE ORDER */
   .kalkulator-grid {
     display: flex;
     flex-direction: column;
@@ -122,6 +122,7 @@
   #cardInputGramasi { order: 1; }
   #cardDaftarWadah  { order: 2; }
   #cardBiangKopi    { order: 3; }
+  #cardSeal         { order: 4; }
 
   /* Sticky Search Bar & Legenda PLU */
   .search-container {
@@ -282,7 +283,7 @@
   }
   .btn-submit-login:active { transform: scale(0.98); }
 
-  /* TATA LETAK DESKTOP KEMBALI BERDAMPINGAN RAPI */
+  /* TATA LETAK DESKTOP */
   @media (min-width: 768px) {
     .app-frame {
       max-width: 1100px;
@@ -308,10 +309,11 @@
       margin: 0 0 16px 0;
     }
 
-    /* Reset urutan grid khusus desktop: Kiri (Input & Biang Kopi), Kanan (Daftar Wadah) */
+    /* Reset urutan grid khusus desktop: Kiri (Input, Biang Kopi, Seal), Kanan (Daftar Wadah) */
     #cardInputGramasi { order: 1; grid-column: 1; }
     #cardBiangKopi    { order: 2; grid-column: 1; }
-    #cardDaftarWadah  { order: 1; grid-column: 2; grid-row: span 2; margin: 0 !important; }
+    #cardSeal         { order: 3; grid-column: 1; }
+    #cardDaftarWadah  { order: 1; grid-column: 2; grid-row: span 3; margin: 0 !important; }
     
     .tabel-wadah-container {
       max-height: 580px;
@@ -404,7 +406,7 @@
         </div>
       </div>
 
-      <!-- KARTU 3: SO BIANG KOPI (Di HP otomatis di bawah, di Desktop di kiri bawah) -->
+      <!-- KARTU 3: SO BIANG KOPI -->
       <div class="card" id="cardBiangKopi">
         <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
         <div class="input-row">
@@ -428,6 +430,26 @@
           <div class="input-row" style="margin-bottom: 0;">
             <span style="font-size:12px; color:var(--text-muted)">Konversi Air Mineral</span>
             <span class="bold" id="resAir">187</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KARTU 4: PLASTIK SEAL (ORDOMETER RUSAK) -->
+      <div class="card" id="cardSeal">
+        <div class="card-title"><i class="ri-disc-line" style="color:#6366f1"></i> Plastik Seal (Odometer Rusak)</div>
+        
+        <div class="input-row">
+          <div>
+            <label for="inputTebalSeal">Tebal Sisa Roll (mm)</label>
+            <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">*Berdasarkan tabel HO (1 - 35 mm)</div>
+          </div>
+          <input type="number" id="inputTebalSeal" value="10" min="1" max="35" oninput="hitungSeal()">
+        </div>
+
+        <div style="background: var(--bg-main); padding: 12px; border-radius: 12px; margin-top: 6px;">
+          <div class="input-row" style="margin-bottom: 0;">
+            <span style="font-size:12px; color:var(--text-muted)">Estimasi Jumlah Cup</span>
+            <span class="bold" id="resSealPcs" style="color:var(--primary); font-size:18px;">547</span>
           </div>
         </div>
       </div>
@@ -570,6 +592,32 @@
 
   let dataWadah = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
   function saveData() { localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); }
+
+  // Data Lookup Plastik Seal
+  const dataTabelSeal = {
+    1: 54, 2: 108, 3: 163, 4: 217, 5: 271, 6: 326, 7: 381, 8: 437, 9: 492, 10: 547,
+    11: 603, 12: 659, 13: 715, 14: 771, 15: 827, 16: 884, 17: 942, 18: 999, 19: 1057, 20: 1114,
+    21: 1172, 22: 1230, 23: 1289, 24: 1347, 25: 1405, 26: 1465, 27: 1524, 28: 1584, 29: 1643, 30: 1703,
+    31: 1763, 32: 1823, 33: 1883, 34: 1943, 35: 2003
+  };
+
+  function hitungSeal() {
+    const inputSeal = parseInt(document.getElementById('inputTebalSeal').value);
+    const resEl = document.getElementById('resSealPcs');
+    
+    if (!inputSeal || inputSeal < 1) {
+      resEl.innerText = "0";
+      resEl.style.fontSize = "18px";
+    } else if (inputSeal > 35) {
+      resEl.innerText = "Maks 35 mm";
+      resEl.style.fontSize = "14px";
+      resEl.style.color = "var(--danger)";
+    } else {
+      resEl.innerText = dataTabelSeal[inputSeal];
+      resEl.style.fontSize = "18px";
+      resEl.style.color = "var(--primary)";
+    }
+  }
 
   function handleAuthButtonClick() {
     if (!isAdmin) {
@@ -755,7 +803,9 @@
     document.getElementById('timbanganGramasi').value = '';
     document.getElementById('biangTimbangan').value = '';
     document.getElementById('biangBotol').value = '';
-    hitungGramasi(); hitungBiang();
+    document.getElementById('inputTebalSeal').value = '';
+    
+    hitungGramasi(); hitungBiang(); hitungSeal();
     loadGoogleSheetsData();
   }
 
@@ -1019,6 +1069,7 @@
   // Init
   hitungGramasi();
   hitungBiang();
+  hitungSeal();
   loadGoogleSheetsData();
 </script>
 
