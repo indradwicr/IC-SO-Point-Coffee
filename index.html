@@ -727,6 +727,7 @@
     document.getElementById('biangTimbangan').value = '';
     document.getElementById('biangBotol').value = '';
     hitungGramasi(); hitungBiang();
+    loadGoogleSheetsData();
   }
 
   // LOGIKA MULTI-KATEGORI & READ/WRITE GOOGLE SHEETS
@@ -842,7 +843,6 @@
 
       let itemsHTML = '';
       items.forEach((item, index) => {
-        // HANYA MENAMPILKAN NOMOR PLU TANPA PREFIKS "RAW:" ATAU "KONV:"
         let rawBadge = item.pluRaw ? `<span class="plu-badge-raw" contenteditable="${isAdmin}" onblur="editPluDirect('${cat}', ${index}, 'raw', this.innerText)">${item.pluRaw}</span>` : '';
         let konvBadge = item.pluKonversi ? `<span class="plu-badge-konversi" contenteditable="${isAdmin}" onblur="editPluDirect('${cat}', ${index}, 'konv', this.innerText)">${item.pluKonversi}</span>` : '';
 
@@ -923,7 +923,6 @@
     renderAccordion(filteredResult, true);
   }
 
-  // FUNGSI PROSES SIMPAN OTOMATIS KE GOOGLE SHEETS
   function tambahPluAdmin() {
     const kategori = document.getElementById('newPluCat').value.trim().toUpperCase();
     const nama = document.getElementById('newPluNama').value.trim();
@@ -991,6 +990,7 @@
   // Init
   hitungGramasi();
   hitungBiang();
+  loadGoogleSheetsData(); // Memuat katalog secara otomatis saat halaman dibuka
 </script>
 
 </body>
