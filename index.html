@@ -114,6 +114,15 @@
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
+  /* DEFAULT MOBILE ORDER (1: Input Gramasi, 2: Daftar Wadah, 3: Biang Kopi) */
+  .kalkulator-grid {
+    display: flex;
+    flex-direction: column;
+  }
+  #cardInputGramasi { order: 1; }
+  #cardDaftarWadah  { order: 2; }
+  #cardBiangKopi    { order: 3; }
+
   /* Sticky Search Bar & Legenda PLU */
   .search-container {
     position: sticky; top: 0; background: var(--bg-main);
@@ -273,7 +282,7 @@
   }
   .btn-submit-login:active { transform: scale(0.98); }
 
-  /* TATA LETAK DESKTOP */
+  /* TATA LETAK DESKTOP KEMBALI BERDAMPINGAN RAPI */
   @media (min-width: 768px) {
     .app-frame {
       max-width: 1100px;
@@ -299,14 +308,10 @@
       margin: 0 0 16px 0;
     }
 
-    .kolom-kiri {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card-daftar-gramasi {
-      margin: 0 !important;
-    }
+    /* Reset urutan grid khusus desktop: Kiri (Input & Biang Kopi), Kanan (Daftar Wadah) */
+    #cardInputGramasi { order: 1; grid-column: 1; }
+    #cardBiangKopi    { order: 2; grid-column: 1; }
+    #cardDaftarWadah  { order: 1; grid-column: 2; grid-row: span 2; margin: 0 !important; }
     
     .tabel-wadah-container {
       max-height: 580px;
@@ -357,83 +362,74 @@
   <div id="tabKalkulator" class="tab-content active">
     <div class="kalkulator-grid">
       
-      <!-- KOLOM KIRI (DI DESKTOP) / ATAS (DI MOBILE) -->
-      <div class="kolom-kiri">
-        <div class="card">
-          <div class="card-title"><i class="ri-scales-3-line" style="color:var(--primary)"></i> Input SO Gramasi</div>
-          <div class="input-row" style="margin-bottom:0;">
-            <label for="timbanganGramasi">Berat Timbangan (gr)</label>
-            <input type="number" id="timbanganGramasi" value="932" oninput="hitungGramasi()">
-          </div>
+      <!-- KARTU 1: INPUT GRAMASI -->
+      <div class="card" id="cardInputGramasi">
+        <div class="card-title"><i class="ri-scales-3-line" style="color:var(--primary)"></i> Input SO Gramasi</div>
+        <div class="input-row" style="margin-bottom:0;">
+          <label for="timbanganGramasi">Berat Timbangan (gr)</label>
+          <input type="number" id="timbanganGramasi" value="932" oninput="hitungGramasi()">
         </div>
-
-        <!-- SO BIANG KOPI: Di mobile posisinya otomatis pindah ke bawah karena berada di dlm .kolom-kiri yang fleksibel jika diatur atau kita pisah urutannya -->
       </div>
 
-      <!-- KONTEN UTAMA HALAMAN UTAMA -->
-      <div style="display: contents;">
-        
-        <!-- Kartu Daftar Wadah -->
-        <div class="card card-daftar-gramasi" style="order: 1;">
-          <div class="card-title" style="justify-content: space-between; margin-bottom: 10px;">
-            <span><i class="ri-list-check-2" style="color:var(--dark-green)"></i> Daftar Gramasi Wadah</span>
-            <button class="btn-sm admin-only" style="background:var(--primary-light); color:var(--primary)" onclick="urutkanAbjad()">Sort A-Z</button>
-          </div>
-
-          <div class="tabel-wadah-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>WADAH</th>
-                  <th>TARE</th>
-                  <th>MJ</th>
-                  <th>BERSIH</th>
-                  <th class="admin-only">AKSI</th>
-                </tr>
-              </thead>
-              <tbody id="tabelGramasi"></tbody>
-            </table>
-          </div>
-
-          <!-- Form Tambah Wadah Khusus Admin -->
-          <div class="admin-only" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-            <input type="text" id="newNama" class="search-input" placeholder="Nama Wadah Baru" style="padding-left:14px; margin-bottom:8px;">
-            <div style="display:flex; gap:8px;">
-              <input type="number" id="newTare" class="search-input" placeholder="Tare (gr)" style="padding-left:14px;">
-              <input type="number" id="newMj" class="search-input" placeholder="MJ" step="0.01" style="padding-left:14px;">
-              <button class="btn-sm" style="background:var(--primary); color:#fff; width:100px;" onclick="tambahItem()">Tambah</button>
-            </div>
-          </div>
+      <!-- KARTU 2: DAFTAR GRAMASI WADAH -->
+      <div class="card" id="cardDaftarWadah">
+        <div class="card-title" style="justify-content: space-between; margin-bottom: 10px;">
+          <span><i class="ri-list-check-2" style="color:var(--dark-green)"></i> Daftar Gramasi Wadah</span>
+          <button class="btn-sm admin-only" style="background:var(--primary-light); color:var(--primary)" onclick="urutkanAbjad()">Sort A-Z</button>
         </div>
 
-        <!-- Kartu SO Biang Kopi: Ditaruh di bawah Daftar Wadah untuk Mobile, di kiri untuk Desktop -->
-        <div class="card" id="cardBiangKopi" style="order: 2;">
-          <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
-          <div class="input-row">
-            <label for="biangTimbangan">Total Timbangan</label>
-            <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
-          </div>
-          <div class="input-row">
-            <label for="biangBotol">Berat Botol Kosong</label>
-            <input type="number" id="biangBotol" value="680" oninput="hitungBiang()">
-          </div>
-
-          <div style="background: var(--bg-main); padding: 12px; border-radius: 12px; margin-top: 6px;">
-            <div class="input-row" style="margin-bottom: 6px;">
-              <span style="font-size:12px; color:var(--text-muted)">Hasil Netto</span>
-              <span class="bold" id="resNetto">267</span>
-            </div>
-            <div class="input-row" style="margin-bottom: 6px;">
-              <span style="font-size:12px; color:var(--text-muted)">Konversi Biji Kopi</span>
-              <span class="bold" id="resKopi">80</span>
-            </div>
-            <div class="input-row" style="margin-bottom: 0;">
-              <span style="font-size:12px; color:var(--text-muted)">Konversi Air Mineral</span>
-              <span class="bold" id="resAir">187</span>
-            </div>
-          </div>
+        <div class="tabel-wadah-container">
+          <table>
+            <thead>
+              <tr>
+                <th>WADAH</th>
+                <th>TARE</th>
+                <th>MJ</th>
+                <th>BERSIH</th>
+                <th class="admin-only">AKSI</th>
+              </tr>
+            </thead>
+            <tbody id="tabelGramasi"></tbody>
+          </table>
         </div>
 
+        <!-- Form Tambah Wadah Khusus Admin -->
+        <div class="admin-only" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+          <input type="text" id="newNama" class="search-input" placeholder="Nama Wadah Baru" style="padding-left:14px; margin-bottom:8px;">
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="newTare" class="search-input" placeholder="Tare (gr)" style="padding-left:14px;">
+            <input type="number" id="newMj" class="search-input" placeholder="MJ" step="0.01" style="padding-left:14px;">
+            <button class="btn-sm" style="background:var(--primary); color:#fff; width:100px;" onclick="tambahItem()">Tambah</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KARTU 3: SO BIANG KOPI (Di HP otomatis di bawah, di Desktop di kiri bawah) -->
+      <div class="card" id="cardBiangKopi">
+        <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
+        <div class="input-row">
+          <label for="biangTimbangan">Total Timbangan</label>
+          <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
+        </div>
+        <div class="input-row">
+          <label for="biangBotol">Berat Botol Kosong</label>
+          <input type="number" id="biangBotol" value="680" oninput="hitungBiang()">
+        </div>
+
+        <div style="background: var(--bg-main); padding: 12px; border-radius: 12px; margin-top: 6px;">
+          <div class="input-row" style="margin-bottom: 6px;">
+            <span style="font-size:12px; color:var(--text-muted)">Hasil Netto</span>
+            <span class="bold" id="resNetto">267</span>
+          </div>
+          <div class="input-row" style="margin-bottom: 6px;">
+            <span style="font-size:12px; color:var(--text-muted)">Konversi Biji Kopi</span>
+            <span class="bold" id="resKopi">80</span>
+          </div>
+          <div class="input-row" style="margin-bottom: 0;">
+            <span style="font-size:12px; color:var(--text-muted)">Konversi Air Mineral</span>
+            <span class="bold" id="resAir">187</span>
+          </div>
+        </div>
       </div>
 
     </div>
