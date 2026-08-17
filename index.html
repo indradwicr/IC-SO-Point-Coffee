@@ -487,13 +487,13 @@
 </div>
 
 <script>
-  // LINK SPREADSHEET CSV BARU ANDA
+  // LINK SPREADSHEET CSV TERBARU
   const SPREADSHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTh44Pn8778u8iW9A9QA1UyYeHj_zO2RQET5gUlhPpua48_MA6XCy0HY6zKAeOGpS9UdT8ogPkzvKo0/pub?output=csv';
   
-  // GID TAB GRAMASI (OPSIONAL)
-  const GRAMASI_GID = ''; 
+  // GID TAB GRAMASI DARI SPREADSHEET KAMU
+  const GRAMASI_GID = '2064100982'; 
 
-  // URL GOOGLE APPS SCRIPT BARU ANDA
+  // URL GOOGLE APPS SCRIPT TERBARU
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1OtQ6ngQ9KUX96bPJtGzsRX0XCbmu4lEA_q1aAM96AtBMRRqWe9YTwmc0ceyG2kpDzw/exec'; 
 
   const ADMIN_PIN = "1197";
@@ -509,7 +509,7 @@
     if(tabId === 'tabKatalog') loadGoogleSheetsData();
   }
 
-  // Data Gramasi Wadah Utama (Selalu Siap Tampil / Fallback Aman)
+  // Data Gramasi Wadah Utama (Fallback Aman)
   const defaultData = [
     { nama: "Biscoff Crunchy", tare: 33, mj: 1 },
     { nama: "Botol Bening (Korken)", tare: 608, mj: 1 },
@@ -539,7 +539,7 @@
   let dataWadah = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
   function saveData() { localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); }
 
-  /* BACA TAB GRAMASI DARI SHEETS DENGAN PENYARINGAN AMAN */
+  /* BACA TAB GRAMASI DARI SHEETS DENGAN CACHE BUSTER DAN FILTER AMAN */
   function loadGramasiFromSheets() {
     if (!GRAMASI_GID) {
       hitungGramasi();
@@ -547,8 +547,8 @@
     }
 
     const gramasiCsvUrl = SPREADSHEET_BASE_URL.includes('?') 
-      ? SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID 
-      : SPREADSHEET_BASE_URL + '?gid=' + GRAMASI_GID;
+      ? SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID + '&t=' + Date.now()
+      : SPREADSHEET_BASE_URL + '?gid=' + GRAMASI_GID + '&t=' + Date.now();
 
     fetch(gramasiCsvUrl)
       .then(res => res.text())
@@ -575,7 +575,7 @@
             break;
           }
           
-          if (nama && namaUpper !== 'WADAH' && tare < 10000) {
+          if (nama && namaUpper !== 'WADAH' && namaUpper !== 'NAMA WADAH' && tare < 10000) {
             parsedWadah.push({ nama, tare, mj });
           }
         }
@@ -651,6 +651,19 @@
     }
   }
 
+  function updateAdminView() {
+    document.querySelectorAll('.admin-only').forEach(el => {
+      el.style.display = isAdmin ? (el.tagName === 'TH' || el.tagName === 'TD' ? 'table-cell' : 'block') : 'none';
+    });
+    hitungGramasi();
+    if(structuredKatalog) renderAccordion(structuredKatalog);
+  }
+
+  function urutkanAbjad() {
+    dataWadah.sort((a, b) => a.nama.localeCompare(b.nama));
+    saveData(); hitungGramasi();
+  }
+
   function hitungGramasi() {
     const input = parseFloat(document.getElementById('timbanganGramasi').value) || 0;
     const tbody = document.getElementById('tabelGramasi');
@@ -669,7 +682,7 @@
         namaUpper.includes('HASIL BERSIH') ||
         namaUpper.includes('BIANG KOPI')
       ) {
-        return; // Skip baris ini, jangan tampilkan di tabel
+        return;
       }
 
       let hasil = item.nama.includes("Yakult") 
@@ -694,6 +707,7 @@
       tbody.innerHTML += row;
     });
   }
+
   function editGramasiDirect(index, field, val) {
     if (!isAdmin) return;
     let cleanVal = val.replace(',', '.').trim();
@@ -843,7 +857,11 @@
   }
 
   function loadGoogleSheetsData() {
-    fetch(SPREADSHEET_BASE_URL)
+    const urlWithCacheBuster = SPREADSHEET_BASE_URL.includes('?') 
+      ? SPREADSHEET_BASE_URL + '&t=' + Date.now() 
+      : SPREADSHEET_BASE_URL + '?t=' + Date.now();
+
+    fetch(urlWithCacheBuster)
       .then(res => res.text())
       .then(csvText => {
         const rows = parseCSV(csvText);
