@@ -535,11 +535,13 @@
   let dataWadah = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
   function saveData() { localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); }
 
-  /* OTOMATIS AMBIL DATA GRAMASI WADAH DARI GOOGLE SHEETS TAB 'Kalkulator PC' */
+ /* BACA TAB GRAMASI DARI SHEETS DENGAN FILTER STOP BARIS KOPI */
   function loadGramasiFromSheets() {
+    if (!GRAMASI_GID || GRAMASI_GID === 'ANGKA_GID_GRAMASI_KAMU') return;
+
     const gramasiCsvUrl = SPREADSHEET_BASE_URL.includes('?') 
-      ? SPREADSHEET_BASE_URL + '&gid=2064100982' 
-      : SPREADSHEET_BASE_URL + '?gid=2064100982';
+      ? SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID 
+      : SPREADSHEET_BASE_URL + '?gid=' + GRAMASI_GID;
 
     fetch(gramasiCsvUrl)
       .then(res => res.text())
@@ -547,16 +549,33 @@
         const rows = parseCSV(csvText);
         let parsedWadah = [];
         
-        rows.forEach((row, idx) => {
-          if (idx === 0) return; // Skip header row
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          if (i === 0) continue; // Skip baris header
+
           const nama = (row[0] || '').trim();
           const tare = parseFloat((row[1] || '0').replace(',', '.')) || 0;
           const mj = parseFloat((row[2] || '1').replace(',', '.')) || 1;
           
-          if (nama && nama.toUpperCase() !== 'WADAH') {
+          const namaUpper = nama.toUpperCase();
+
+          // STOP BACA JIKA SUDAH SAMPAI DI BAGIAN SO BIANG KOPI / HASIL BERSIH
+          if (
+            namaUpper.includes('BIANG KOPI') || 
+            namaUpper.includes('INPUT TIMBANGAN') || 
+            namaUpper.includes('INPUT BERAT') || 
+            namaUpper.includes('HASIL BERSIH') || 
+            namaUpper.includes('NETTO') || 
+            namaUpper.includes('KONVERSI BIJI') || 
+            namaUpper.includes('KONVERSI AIR')
+          ) {
+            break; // Hentikan pembacaan baris selanjutnya
+          }
+          
+          if (nama && namaUpper !== 'WADAH' && tare < 10000) {
             parsedWadah.push({ nama, tare, mj });
           }
-        });
+        }
 
         if (parsedWadah.length > 0) {
           dataWadah = parsedWadah;
@@ -565,10 +584,9 @@
         }
       })
       .catch(err => {
-        console.warn("Gagal membaca tab gramasi dari sheets, menggunakan data lokal:", err);
+        console.warn("Menggunakan data gramasi bawaan:", err);
       });
   }
-
   function handleAuthButtonClick() {
     if (!isAdmin) {
       openLoginModal();
