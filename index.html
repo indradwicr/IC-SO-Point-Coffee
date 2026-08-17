@@ -459,34 +459,66 @@
     });
   }
 
-  function editGramasiDirect(index, field, val) {
-    if (!isAdmin) return;
-    let cleanVal = val.replace(',', '.').trim();
+  // 1. Edit Langsung Teks/Angka Gramasi oleh Admin
+function editGramasiDirect(index, field, val) {
+  if (!isAdmin) return;
+  let cleanVal = val.replace(',', '.').trim();
 
-    if (field === 'nama') {
-      dataWadah[index].nama = cleanVal || "Item Baru";
-    } else if (field === 'tare') {
-      dataWadah[index].tare = parseFloat(cleanVal) || 0;
-    } else if (field === 'mj') {
-      dataWadah[index].mj = parseFloat(cleanVal) || 1;
-    }
-
-    saveData();
-    hitungGramasi();
+  if (field === 'nama') {
+    dataWadah[index].nama = cleanVal || "Item Baru";
+  } else if (field === 'tare') {
+    dataWadah[index].tare = parseFloat(cleanVal) || 0;
+  } else if (field === 'mj') {
+    dataWadah[index].mj = parseFloat(cleanVal) || 1;
   }
 
-  function tambahItem() {
-    const nama = document.getElementById('newNama').value.trim();
-    const tare = parseFloat(document.getElementById('newTare').value) || 0;
-    const mj = parseFloat(document.getElementById('newMj').value) || 1;
-    if (!nama) return alert("Nama wadah wajib diisi!");
-    dataWadah.push({ nama, tare, mj });
-    urutkanAbjad();
-    document.getElementById('newNama').value = '';
-    document.getElementById('newTare').value = '';
-    document.getElementById('newMj').value = '';
-  }
+  // Update langsung di layar HP & simpan ke memori lokal
+  saveData();
+  hitungGramasi();
 
+  // Kirim update ke Google Sheets di background (opsional)
+  kirimGramasiKeSheets(dataWadah[index]);
+}
+
+// 2. Tambah Wadah Baru dari Form Admin
+function tambahItem() {
+  const nama = document.getElementById('newNama').value.trim();
+  const tare = parseFloat(document.getElementById('newTare').value) || 0;
+  const mj = parseFloat(document.getElementById('newMj').value) || 1;
+  
+  if (!nama) return alert("Nama wadah wajib diisi!");
+
+  const newItem = { nama, tare, mj };
+
+  // Update langsung di layar HP
+  dataWadah.push(newItem);
+  urutkanAbjad();
+
+  // Reset Input Form
+  document.getElementById('newNama').value = '';
+  document.getElementById('newTare').value = '';
+  document.getElementById('newMj').value = '';
+
+  // Kirim ke Google Sheets di background
+  kirimGramasiKeSheets(newItem);
+}
+
+// Fungsi Helper Kirim Data Gramasi ke Google Sheets
+function kirimGramasiKeSheets(item) {
+  if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI') {
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "updateGramasi",
+        nama: item.nama,
+        tare: item.tare,
+        mj: item.mj
+      })
+    });
+  }
+}
   function hapusItem(index) {
     if (confirm(`Hapus ${dataWadah[index].nama}?`)) {
       dataWadah.splice(index, 1);
