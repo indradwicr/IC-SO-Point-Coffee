@@ -651,25 +651,27 @@
     }
   }
 
-  function updateAdminView() {
-    document.querySelectorAll('.admin-only').forEach(el => {
-      el.style.display = isAdmin ? (el.tagName === 'TH' || el.tagName === 'TD' ? 'table-cell' : 'block') : 'none';
-    });
-    hitungGramasi();
-    if(structuredKatalog) renderAccordion(structuredKatalog);
-  }
-
-  function urutkanAbjad() {
-    dataWadah.sort((a, b) => a.nama.localeCompare(b.nama));
-    saveData(); hitungGramasi();
-  }
-
   function hitungGramasi() {
     const input = parseFloat(document.getElementById('timbanganGramasi').value) || 0;
     const tbody = document.getElementById('tabelGramasi');
     tbody.innerHTML = '';
 
     dataWadah.forEach((item, index) => {
+      const namaUpper = (item.nama || '').trim().toUpperCase();
+
+      // BAGIAN PENYARING: Abaikan header atau teks sampah dari Sheets
+      if (
+        !item.nama ||
+        namaUpper === 'NAMA WADAH' ||
+        namaUpper === 'WADAH' ||
+        namaUpper.includes('INPUT TIMBANGAN') ||
+        namaUpper.includes('INPUT BERAT') ||
+        namaUpper.includes('HASIL BERSIH') ||
+        namaUpper.includes('BIANG KOPI')
+      ) {
+        return; // Skip baris ini, jangan tampilkan di tabel
+      }
+
       let hasil = item.nama.includes("Yakult") 
         ? Math.round(input * item.mj) 
         : Math.round((input - item.tare) * item.mj);
@@ -692,7 +694,6 @@
       tbody.innerHTML += row;
     });
   }
-
   function editGramasiDirect(index, field, val) {
     if (!isAdmin) return;
     let cleanVal = val.replace(',', '.').trim();
