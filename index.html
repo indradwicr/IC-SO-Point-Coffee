@@ -499,7 +499,7 @@
   const ADMIN_PIN = "1197";
   let isAdmin = false;
 
-  // PENYARING KETAT UNTUK MEMBUANG TEKS SAMPAH / HEADER / NETTO / BIANG KOPI
+  // PENYARING KETAT UNTUK MEMBUANG TEKS SAMPAH / HEADER
   function isWadahSampah(nama) {
     if (!nama) return true;
     const u = nama.toString().toUpperCase().trim();
@@ -558,7 +558,6 @@
     { nama: "Yakult / Pcs", tare: 0, mj: 65 }
   ];
 
-  // Inisialisasi Data Wadah dari localStorage (Langsung Dibersihkan dari Sampah)
   let rawStored = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
   let dataWadah = rawStored.filter(item => !isWadahSampah(item.nama));
   saveData();
@@ -567,7 +566,7 @@
     localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); 
   }
 
-  /* BACA TAB GRAMASI DARI SHEETS DENGAN PENYARINGAN KETAT */
+  /* BACA TAB GRAMASI SECARA DINAMIS DARI GOOGLE SHEETS */
   function loadGramasiFromSheets() {
     if (!GRAMASI_GID) {
       hitungGramasi();
@@ -583,25 +582,35 @@
       .then(csvText => {
         const rows = parseCSV(csvText);
         let parsedWadah = [];
+        let mulaiMembaca = false;
         
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
-          if (i === 0) continue;
-
           const nama = (row[0] || '').trim();
           const tare = parseFloat((row[1] || '0').replace(',', '.')) || 0;
           const mj = parseFloat((row[2] || '1').replace(',', '.')) || 1;
           
-          if (isWadahSampah(nama)) {
-            const u = nama.toUpperCase();
-            // Jika menemukan judul bagian bawah, hentikan pembacaan
-            if (u.includes('BIANG KOPI') || u.includes('INPUT') || u.includes('NETTO') || u.includes('KONVERSI')) {
-              break;
-            }
+          const namaUpper = nama.toUpperCase();
+
+          // Mulai membaca tepat setelah menemukan baris header 'WADAH' atau 'NAMA WADAH'
+          if (namaUpper === 'WADAH' || namaUpper === 'NAMA WADAH') {
+            mulaiMembaca = true;
             continue;
           }
-          
-          if (tare < 10000) {
+
+          // Hentikan pembacaan otomatis saat menyentuh bagian bawah (Biang Kopi / Netto)
+          if (mulaiMembaca && (
+            namaUpper.includes('BIANG KOPI') || 
+            namaUpper.includes('INPUT') || 
+            namaUpper.includes('HASIL BERSIH') || 
+            namaUpper.includes('NETTO') || 
+            namaUpper.includes('KONVERSI')
+          )) {
+            break; 
+          }
+
+          // Masukkan item baru secara dinamis selama berada di rentang tabel wadah
+          if (mulaiMembaca && nama && !isWadahSampah(nama) && tare < 10000) {
             parsedWadah.push({ nama, tare, mj });
           }
         }
@@ -613,7 +622,7 @@
         hitungGramasi();
       })
       .catch(err => {
-        console.warn("Menggunakan data gramasi lokal:", err);
+        console.warn("Gagal sinkronisasi Sheets:", err);
         hitungGramasi();
       });
   }
@@ -696,7 +705,6 @@
     tbody.innerHTML = '';
 
     dataWadah.forEach((item, index) => {
-      // PENYARING TAMPILAN TABEL: Pastikan sampah tidak pernah ditampilkan
       if (isWadahSampah(item.nama)) return;
 
       let hasil = item.nama.includes("Yakult") 
@@ -1070,7 +1078,7 @@
     }
   }
 
-  // Inisialisasi Aplikasi
+  // Inisialisasi Aplikasi & Tarik Data Terbaru dari Sheets
   loadGramasiFromSheets();
   hitungBiang();
 </script>
