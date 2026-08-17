@@ -105,7 +105,7 @@
     font-size: 11px; text-transform: uppercase; color: var(--text-muted);
     padding: 10px 6px; text-align: left; border-bottom: 1px solid #f1f5f9;
   }
-  td { padding: 12px 6px; font-size: 13px; border-bottom: 1px solid #f8fafc; }
+  td { padding: 10px 6px; font-size: 13px; border-bottom: 1px solid #f8fafc; }
   th:nth-child(2), th:nth-child(3), td:nth-child(2), td:nth-child(3) { text-align: center; }
   th:last-child, td:last-child { text-align: right; }
   .bold { font-weight: 700; color: var(--text-main); }
@@ -113,12 +113,6 @@
   /* Tab View Control */
   .tab-content { display: none; }
   .tab-content.active { display: block; }
-
-  /* Layout Grid untuk Kalkulator di Desktop */
-  .kalkulator-grid {
-    display: flex;
-    flex-direction: column;
-  }
 
   /* Sticky Search Bar & Legenda PLU */
   .search-container {
@@ -183,7 +177,6 @@
   }
   .plu-title { font-size: 13px; font-weight: 600; color: var(--text-main); line-height: 1.3; }
 
-  /* Styling Badge PLU TANPA TEKS */
   .plu-badge-container {
     display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center;
   }
@@ -196,7 +189,6 @@
     padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; font-family: monospace;
   }
 
-  /* Inline Editing Visual Clue Mode Admin */
   .is-admin [contenteditable="true"] {
     outline: 1.5px dashed var(--primary) !important;
     background: #ffffff !important;
@@ -206,7 +198,6 @@
     cursor: text;
   }
 
-  /* Bottom Navigation */
   .bottom-nav {
     position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 100%; max-width: 480px; background: #ffffff;
@@ -231,13 +222,11 @@
   }
   .nav-item-center i { font-size: 22px; color: #fff; }
 
-  /* Admin Control UI */
   .admin-only { display: none; }
   .btn-sm { padding: 4px 8px; border-radius: 6px; border: none; font-size: 11px; font-weight: bold; cursor: pointer; }
   .btn-del { background: #fee2e2; color: var(--danger); }
   .btn-move { background: #f1f5f9; color: var(--text-main); }
 
-  /* MODAL LOGIN STYLING */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
@@ -284,29 +273,62 @@
   }
   .btn-submit-login:active { transform: scale(0.98); }
 
-  /* MEDIA QUERIES UNTUK DESKTOP */
+  /* PERBAIKAN TATA LETAK DESKTOP YANG LEBIH PROPOSIONAL & ESTETIK */
   @media (min-width: 768px) {
     .app-frame {
-      max-width: 1020px;
+      max-width: 1100px;
       margin: 20px 0;
       border-radius: 24px;
       min-height: calc(100vh - 40px);
     }
 
     .bottom-nav {
-      max-width: 1020px;
+      max-width: 1100px;
       border-radius: 0 0 24px 24px;
     }
 
+    /* Mengatur grid agar kiri dan kanan terbagi rata (2 Kolom) */
     .kalkulator-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
       padding: 0 20px;
+      align-items: start;
     }
 
-    .kalkulator-grid .card { margin: 0; }
-    .kalkulator-grid .card-daftar-gramasi { grid-row: span 2; }
+    .kalkulator-grid .card {
+      margin: 0 0 16px 0;
+    }
+
+    /* Kolom kiri digabung rapi untuk Input & Biang Kopi */
+    .kolom-kiri {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tabel Wadah di kanan diberi tinggi maksimal dan bisa di-scroll mandiri agar tidak melar */
+    .card-daftar-gramasi {
+      margin: 0 !important;
+    }
+    
+    .tabel-wadah-container {
+      max-height: 580px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    
+    /* Mempercantik Scrollbar Tabel */
+    .tabel-wadah-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .tabel-wadah-container::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    .tabel-wadah-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
 
     .category-content {
       display: grid;
@@ -338,32 +360,67 @@
   <!-- TAB 1: KALKULATOR SO GRAMASI -->
   <div id="tabKalkulator" class="tab-content active">
     <div class="kalkulator-grid">
-      <div class="card">
-        <div class="card-title"><i class="ri-scales-3-line" style="color:var(--primary)"></i> Input SO Gramasi</div>
-        <div class="input-row">
-          <label for="timbanganGramasi">Berat Timbangan (gr)</label>
-          <input type="number" id="timbanganGramasi" value="932" oninput="hitungGramasi()">
+      
+      <!-- KOLOM KIRI: INPUT GRAMASI & BIANG KOPI -->
+      <div class="kolom-kiri">
+        <div class="card">
+          <div class="card-title"><i class="ri-scales-3-line" style="color:var(--primary)"></i> Input SO Gramasi</div>
+          <div class="input-row" style="margin-bottom:0;">
+            <label for="timbanganGramasi">Berat Timbangan (gr)</label>
+            <input type="number" id="timbanganGramasi" value="932" oninput="hitungGramasi()">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
+          <div class="input-row">
+            <label for="biangTimbangan">Total Timbangan</label>
+            <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
+          </div>
+          <div class="input-row">
+            <label for="biangBotol">Berat Botol Kosong</label>
+            <input type="number" id="biangBotol" value="680" oninput="hitungBiang()">
+          </div>
+
+          <div style="background: var(--bg-main); padding: 12px; border-radius: 12px; margin-top: 6px;">
+            <div class="input-row" style="margin-bottom: 6px;">
+              <span style="font-size:12px; color:var(--text-muted)">Hasil Netto</span>
+              <span class="bold" id="resNetto">267</span>
+            </div>
+            <div class="input-row" style="margin-bottom: 6px;">
+              <span style="font-size:12px; color:var(--text-muted)">Konversi Biji Kopi</span>
+              <span class="bold" id="resKopi">80</span>
+            </div>
+            <div class="input-row" style="margin-bottom: 0;">
+              <span style="font-size:12px; color:var(--text-muted)">Konversi Air Mineral</span>
+              <span class="bold" id="resAir">187</span>
+            </div>
+          </div>
         </div>
       </div>
 
+      <!-- KOLOM KANAN: DAFTAR GRAMASI WADAH -->
       <div class="card card-daftar-gramasi">
-        <div class="card-title" style="justify-content: space-between;">
+        <div class="card-title" style="justify-content: space-between; margin-bottom: 10px;">
           <span><i class="ri-list-check-2" style="color:var(--dark-green)"></i> Daftar Gramasi Wadah</span>
           <button class="btn-sm admin-only" style="background:var(--primary-light); color:var(--primary)" onclick="urutkanAbjad()">Sort A-Z</button>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>WADAH</th>
-              <th>TARE</th>
-              <th>MJ</th>
-              <th>BERSIH</th>
-              <th class="admin-only">AKSI</th>
-            </tr>
-          </thead>
-          <tbody id="tabelGramasi"></tbody>
-        </table>
+        <!-- Kontainer dengan scroll mandiri agar tidak melar ke bawah -->
+        <div class="tabel-wadah-container">
+          <table>
+            <thead>
+              <tr>
+                <th>WADAH</th>
+                <th>TARE</th>
+                <th>MJ</th>
+                <th>BERSIH</th>
+                <th class="admin-only">AKSI</th>
+              </tr>
+            </thead>
+            <tbody id="tabelGramasi"></tbody>
+          </table>
+        </div>
 
         <!-- Form Tambah Wadah Khusus Admin -->
         <div class="admin-only" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
@@ -376,32 +433,6 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
-        <div class="input-row">
-          <label for="biangTimbangan">Total Timbangan</label>
-          <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
-        </div>
-        <div class="input-row">
-          <label for="biangBotol">Berat Botol Kosong</label>
-          <input type="number" id="biangBotol" value="680" oninput="hitungBiang()">
-        </div>
-
-        <div style="background: var(--bg-main); padding: 12px; border-radius: 12px; margin-top: 10px;">
-          <div class="input-row" style="margin-bottom: 6px;">
-            <span style="font-size:12px; color:var(--text-muted)">Hasil Netto</span>
-            <span class="bold" id="resNetto">267</span>
-          </div>
-          <div class="input-row" style="margin-bottom: 6px;">
-            <span style="font-size:12px; color:var(--text-muted)">Konversi Biji Kopi</span>
-            <span class="bold" id="resKopi">80</span>
-          </div>
-          <div class="input-row" style="margin-bottom: 0;">
-            <span style="font-size:12px; color:var(--text-muted)">Konversi Air Mineral</span>
-            <span class="bold" id="resAir">187</span>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -495,7 +526,6 @@
 <script>
   const SPREADSHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTma4BAWGCQJukI1wm-7Mv1JYW0V-maOv3sjwe1LBUTJk_U3m4r3wLt_NeRE02UlY_cvBcZnmjVV54f/pub?output=csv';
   
-  // PASTE URL GOOGLE APPS SCRIPT ANDA DI SINI
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwT_9AGp2YvUGlSiwyYhm-S5mAQ0kbShxjitDXH2D7w0AB9NdwJNC7xj3UowMI7mKUF/exec'; 
 
   const ADMIN_PIN = "1197";
@@ -541,7 +571,6 @@
   let dataWadah = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
   function saveData() { localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); }
 
-  /* LOGIKA MODAL LOGIN PROPER */
   function handleAuthButtonClick() {
     if (!isAdmin) {
       openLoginModal();
@@ -950,7 +979,7 @@
       body: JSON.stringify(payload)
     })
     .then(() => {
-      alert("Berhasil! Barang baru sudah tersimpan di Google Sheets dan bisa langsung dilihat oleh semua staf.");
+      alert("Berhasil! Barang baru sudah tersimpan di Google Sheets dan bisa langsung dilihat oleh Staf.");
       document.getElementById('newPluCat').value = '';
       document.getElementById('newPluNama').value = '';
       document.getElementById('newPluRaw').value = '';
@@ -990,7 +1019,7 @@
   // Init
   hitungGramasi();
   hitungBiang();
-  loadGoogleSheetsData(); // Memuat katalog secara otomatis saat halaman dibuka
+  loadGoogleSheetsData();
 </script>
 
 </body>
