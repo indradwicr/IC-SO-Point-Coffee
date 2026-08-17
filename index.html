@@ -371,7 +371,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi (Sync Sheets)</div>
+        <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi</div>
         <div class="input-row">
           <label for="biangTimbangan">Total Timbangan</label>
           <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
@@ -498,7 +498,6 @@
 
   const ADMIN_PIN = "1197";
   let isAdmin = false;
-  let ratioBijiKopi = 0.3; // Default rasio, otomatis di-update dari Sheets
 
   // PENYARING KETAT UNTUK MEMBUANG TEKS SAMPAH / HEADER
   function isWadahSampah(nama) {
@@ -567,11 +566,10 @@
     localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); 
   }
 
-  /* BACA TAB GRAMASI & KALKULATOR BIANG KOPI DINAMIS DARI GOOGLE SHEETS */
+  /* BACA TAB GRAMASI SECARA DINAMIS DARI GOOGLE SHEETS */
   function loadGramasiFromSheets() {
     if (!GRAMASI_GID) {
       hitungGramasi();
-      hitungBiang();
       return;
     }
 
@@ -593,12 +591,6 @@
           const mj = parseFloat((row[2] || '1').replace(',', '.')) || 1;
           
           const namaUpper = nama.toUpperCase();
-
-          // Tangkap rasio konversi biji kopi dinamis dari sheets jika ada
-          if (namaUpper.includes('KONVERSI BIJI KOPI')) {
-            // Berdasarkan contoh sheets: baris netto misal 367 dan konversi biji kopi 110
-            ratioBijiKopi = tare / 367; 
-          }
 
           // Mulai membaca tepat setelah menemukan baris header 'WADAH' atau 'NAMA WADAH'
           if (namaUpper === 'WADAH' || namaUpper === 'NAMA WADAH') {
@@ -628,12 +620,10 @@
           saveData();
         }
         hitungGramasi();
-        hitungBiang();
       })
       .catch(err => {
         console.warn("Gagal sinkronisasi Sheets:", err);
         hitungGramasi();
-        hitungBiang();
       });
   }
 
@@ -813,7 +803,7 @@
     const timbangan = parseFloat(document.getElementById('biangTimbangan').value) || 0;
     const botol = parseFloat(document.getElementById('biangBotol').value) || 0;
     const netto = Math.max(0, timbangan - botol);
-    const kopi = Math.round(netto * (isNaN(ratioBijiKopi) ? 0.3 : ratioBijiKopi));
+    const kopi = Math.round(netto * 0.3);
     document.getElementById('resNetto').innerText = netto;
     document.getElementById('resKopi').innerText = kopi;
     document.getElementById('resAir').innerText = netto - kopi;
@@ -1088,8 +1078,9 @@
     }
   }
 
-  // Inisialisasi Aplikasi Utama
+  // Inisialisasi Aplikasi & Tarik Data Terbaru dari Sheets
   loadGramasiFromSheets();
+  hitungBiang();
 </script>
 
 </body>
