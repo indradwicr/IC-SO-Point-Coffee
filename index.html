@@ -4,90 +4,964 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>SO Point Coffee App</title>
+<!-- Google Fonts (Inter) -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Remix Icon -->
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
 <style>
-  :root { --bg-main: #f4f6f9; --primary: #2563eb; --dark-green: #1b4d2e; --text-main: #1e293b; --text-muted: #64748b; --card-bg: #ffffff; --yellow-input: #fef08a; }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-  body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
-  .app-frame { width: 100%; max-width: 480px; background: var(--bg-main); min-height: 100vh; padding-bottom: 90px; }
-  .card { background: var(--card-bg); margin: 12px 20px; padding: 18px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
-  .card-title { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .input-row input { background: var(--yellow-input); border: 1.5px solid #fde047; padding: 8px 12px; border-radius: 12px; font-size: 16px; font-weight: 700; width: 110px; text-align: right; }
-  .tab-content { display: none; } .tab-content.active { display: block; }
-  .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #ffffff; display: flex; justify-content: space-around; padding: 15px 0; border-radius: 24px 24px 0 0; box-shadow: 0 -5px 25px rgba(0,0,0,0.05); }
-  .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--primary); font-size: 14px; cursor: pointer; border: none; background: none; }
+  :root {
+    --bg-main: #f4f6f9;
+    --primary: #2563eb;
+    --primary-light: #eff6ff;
+    --success: #10b981;
+    --danger: #ef4444;
+    --dark-green: #1b4d2e;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --card-bg: #ffffff;
+    --yellow-input: #fef08a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .app-frame {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-main);
+    min-height: 100vh;
+    padding-bottom: 90px;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    transition: max-width 0.3s ease;
+  }
+
+  /* Header Section */
+  .header-user {
+    padding: 20px 20px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .user-info { display: flex; align-items: center; gap: 12px; }
+  .user-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--dark-green); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px;
+  }
+  .user-text h3 { font-size: 15px; font-weight: 700; }
+  .user-text p { font-size: 12px; color: var(--text-muted); }
+
+  .btn-admin {
+    background: #fff; border: 1px solid #e2e8f0;
+    padding: 8px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-admin:hover { background: #f8fafc; }
+
+  /* Card Base Style */
+  .card {
+    background: var(--card-bg);
+    margin: 12px 20px;
+    padding: 18px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  }
+
+  .card-title {
+    font-size: 14px; font-weight: 700; color: var(--text-main);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Input Rows */
+  .input-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .input-row label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+  .input-row input {
+    background: var(--yellow-input);
+    border: 1.5px solid #fde047;
+    padding: 8px 12px; border-radius: 12px;
+    font-size: 16px; font-weight: 700; width: 110px; text-align: right;
+    outline: none;
+  }
+
+  /* App Tables */
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th {
+    font-size: 11px; text-transform: uppercase; color: var(--text-muted);
+    padding: 10px 6px; text-align: left; border-bottom: 1px solid #f1f5f9;
+  }
+  td { padding: 12px 6px; font-size: 13px; border-bottom: 1px solid #f8fafc; }
+  th:nth-child(2), th:nth-child(3), td:nth-child(2), td:nth-child(3) { text-align: center; }
+  th:last-child, td:last-child { text-align: right; }
+  .bold { font-weight: 700; color: var(--text-main); }
+
+  /* Tab View Control */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Layout Grid untuk Kalkulator di Desktop */
+  .kalkulator-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Sticky Search Bar & Legenda PLU */
+  .search-container {
+    position: sticky; top: 0; background: var(--bg-main);
+    padding: 10px 20px 6px; z-index: 10;
+  }
+  .search-box-wrapper {
+    position: relative; display: flex; align-items: center;
+  }
+  .search-box-wrapper i {
+    position: absolute; left: 14px; color: var(--text-muted); font-size: 18px;
+  }
+  .search-input {
+    width: 100%; padding: 12px 16px 12px 42px; border-radius: 16px;
+    border: 1px solid #e2e8f0; font-size: 14px; outline: none;
+    background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  }
+
+  /* LEGENDA WARNA PLU STYLING */
+  .plu-legend-container {
+    display: flex; gap: 14px; align-items: center; justify-content: flex-end;
+    padding: 8px 20px 10px; font-size: 11px; font-weight: 600; color: var(--text-muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-badge-raw {
+    width: 14px; height: 14px; border-radius: 4px; background: #eff6ff; border: 1px solid #bfdbfe;
+  }
+  .legend-badge-konversi {
+    width: 14px; height: 14px; border-radius: 4px; background: #fef3c7; border: 1px solid #fde68a;
+  }
+
+  /* KATEGORI ACCORDION & CARDS */
+  .katalog-accordion {
+    display: flex; flex-direction: column; gap: 12px; padding: 0 20px;
+  }
+  
+  .category-group {
+    background: #fff; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+  }
+
+  .category-header {
+    background: var(--dark-green); color: #fff; padding: 14px 18px;
+    font-size: 13px; font-weight: 700; display: flex; justify-content: space-between;
+    align-items: center; cursor: pointer; letter-spacing: 0.5px;
+  }
+  .category-header i { font-size: 18px; transition: transform 0.3s; }
+  .category-group.open .category-header i { transform: rotate(180deg); }
+
+  .category-content {
+    display: none; padding: 12px; background: #fff; flex-direction: column; gap: 8px;
+  }
+  .category-group.open .category-content { display: flex; }
+
+  /* Card Item Dalam Kategori */
+  .plu-card {
+    background: var(--bg-main); padding: 12px 14px; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .plu-card-header {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .plu-title { font-size: 13px; font-weight: 600; color: var(--text-main); line-height: 1.3; }
+
+  .plu-badge-container {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center;
+  }
+  .plu-badge-raw {
+    background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+    padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; font-family: monospace;
+  }
+  .plu-badge-konversi {
+    background: #fef3c7; color: #b45309; border: 1px solid #fde68a;
+    padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; font-family: monospace;
+  }
+
+  .is-admin [contenteditable="true"] {
+    outline: 1.5px dashed var(--primary) !important;
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    border-radius: 4px;
+    padding: 2px 4px;
+    cursor: text;
+  }
+
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px; background: #ffffff;
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 10px 0 16px; border-radius: 24px 24px 0 0;
+    box-shadow: 0 -5px 25px rgba(0,0,0,0.05); z-index: 99;
+    transition: max-width 0.3s ease;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    color: var(--text-muted); font-size: 11px; font-weight: 500;
+    cursor: pointer; gap: 4px; border: none; background: none; flex: 1;
+  }
+  .nav-item i { font-size: 20px; }
+  .nav-item.active { color: var(--primary); font-weight: 700; }
+  .nav-item-center {
+    width: 48px; height: 48px; background: var(--primary);
+    border-radius: 50%; color: #fff; display: flex;
+    align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    margin-top: -24px; cursor: pointer; border: none;
+  }
+  .nav-item-center i { font-size: 22px; color: #fff; }
+
+  .admin-only { display: none; }
+  .btn-sm { padding: 4px 8px; border-radius: 6px; border: none; font-size: 11px; font-weight: bold; cursor: pointer; }
+  .btn-del { background: #fee2e2; color: var(--danger); }
+  .btn-move { background: #f1f5f9; color: var(--text-main); }
+
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 999; opacity: 0; visibility: hidden; transition: 0.2s ease;
+  }
+  .modal-overlay.open { opacity: 1; visibility: visible; }
+  .modal-card {
+    background: #ffffff; width: 90%; max-width: 380px;
+    padding: 24px; border-radius: 24px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(20px); transition: transform 0.2s ease;
+  }
+  .modal-overlay.open .modal-card { transform: translateY(0); }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+  .modal-close { background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; }
+  .modal-body p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+  .pin-input-group {
+    position: relative; margin-bottom: 12px;
+  }
+  .pin-input-group i.left-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 18px;
+  }
+  .pin-input-group i.toggle-eye {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 18px; cursor: pointer;
+  }
+  .pin-input-field {
+    width: 100%; padding: 12px 42px; border-radius: 14px;
+    border: 1.5px solid #e2e8f0; font-size: 15px; outline: none;
+    transition: 0.2s; background: var(--bg-main); letter-spacing: 2px;
+  }
+  .pin-input-field:focus { border-color: var(--primary); background: #fff; }
+  .modal-error { color: var(--danger); font-size: 12px; margin-top: -6px; margin-bottom: 12px; display: none; font-weight: 500; }
+  .btn-submit-login {
+    width: 100%; padding: 12px; border-radius: 14px; border: none;
+    background: var(--primary); color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+  .btn-submit-login:active { transform: scale(0.98); }
+
+  @media (min-width: 768px) {
+    .app-frame {
+      max-width: 1020px;
+      margin: 20px 0;
+      border-radius: 24px;
+      min-height: calc(100vh - 40px);
+    }
+
+    .bottom-nav {
+      max-width: 1020px;
+      border-radius: 0 0 24px 24px;
+    }
+
+    .kalkulator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 0 20px;
+    }
+
+    .kalkulator-grid .card { margin: 0; }
+    .kalkulator-grid .card-daftar-gramasi { grid-row: span 2; }
+
+    .category-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+  }
 </style>
 </head>
 <body>
 
-<div class="app-frame">
-  <div id="tabKalkulator" class="tab-content active">
-    <div class="card">
-      <div class="card-title"><i class="ri-scales-3-line"></i> Input SO Gramasi</div>
-      <div class="input-row"><label>Berat Timbangan (gr)</label><input type="number" id="timbanganGramasi" oninput="hitungGramasi()"></div>
-      <table id="tabelGramasi"><thead><tr><th>WADAH</th><th>TARE</th><th>MJ</th><th>BERSIH</th></tr></thead><tbody></tbody></table>
+<div class="app-frame" id="appFrame">
+
+  <!-- Header Section -->
+  <div class="header-user">
+    <div class="user-info">
+      <div class="user-avatar">PC</div>
+      <div class="user-text">
+        <h3 id="appStatus">Point Coffee SO</h3>
+        <p id="roleStatus">Mode Staf (Read-Only)</p>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-title"><i class="ri-cup-line"></i> SO Biang Kopi (Sync Tab: Kalkulator Biang)</div>
-      <div class="input-row"><label>Total Timbangan</label><input type="number" id="biangTimbangan" oninput="hitungBiang()"></div>
-      <div class="input-row"><label>Berat Botol Kosong</label><input type="number" id="biangBotol" oninput="hitungBiang()"></div>
-      <div class="input-row"><span>Netto</span><span id="resNetto" style="font-weight:700">0</span></div>
-      <div class="input-row"><span>Konversi Biji Kopi</span><span id="resKopi" style="font-weight:700">0</span></div>
+    <button class="btn-admin" id="btnAuth" onclick="handleAuthButtonClick()">
+      <i class="ri-user-settings-line" id="iconAuth"></i>
+      <span id="labelAuth">Login Admin</span>
+    </button>
+  </div>
+
+  <!-- TAB 1: KALKULATOR SO GRAMASI -->
+  <div id="tabKalkulator" class="tab-content active">
+    <div class="kalkulator-grid">
+      <div class="card">
+        <div class="card-title"><i class="ri-scales-3-line" style="color:var(--primary)"></i> Input SO Gramasi</div>
+        <div class="input-row">
+          <label for="timbanganGramasi">Berat Timbangan (gr)</label>
+          <input type="number" id="timbanganGramasi" value="932" oninput="hitungGramasi()">
+        </div>
+      </div>
+
+      <div class="card card-daftar-gramasi">
+        <div class="card-title" style="justify-content: space-between;">
+          <span><i class="ri-list-check-2" style="color:var(--dark-green)"></i> Daftar Gramasi Wadah</span>
+          <button class="btn-sm admin-only" style="background:var(--primary-light); color:var(--primary)" onclick="urutkanAbjad()">Sort A-Z</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>WADAH</th>
+              <th>TARE</th>
+              <th>MJ</th>
+              <th>BERSIH</th>
+              <th class="admin-only">AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tabelGramasi"></tbody>
+        </table>
+
+        <!-- Form Tambah Wadah Khusus Admin -->
+        <div class="admin-only" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+          <input type="text" id="newNama" class="search-input" placeholder="Nama Wadah Baru" style="padding-left:14px; margin-bottom:8px;">
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="newTare" class="search-input" placeholder="Tare (gr)" style="padding-left:14px;">
+            <input type="number" id="newMj" class="search-input" placeholder="MJ" step="0.01" style="padding-left:14px;">
+            <button class="btn-sm" style="background:var(--primary); color:#fff; width:100px;" onclick="tambahItem()">Tambah</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ri-cup-line" style="color:#d97706"></i> SO Biang Kopi (Sync Tab: Kalkulator Biang)</div>
+        <div class="input-row">
+          <label for="biangTimbangan">Total Timbangan</label>
+          <input type="number" id="biangTimbangan" value="947" oninput="hitungBiang()">
+        </div>
+        <div class="input-row">
+          <label for="biangBotol">Berat Botol Kosong</label>
+          <input type="number" id="biangBotol" value="680" oninput="hitungBiang()">
+        </div>
+
+        <div style="background: var(--bg-main); padding: 12px; border-radius: 12px; margin-top: 10px;">
+          <div class="input-row" style="margin-bottom: 6px;">
+            <span style="font-size:12px; color:var(--text-muted)">Hasil Netto</span>
+            <span class="bold" id="resNetto">267</span>
+          </div>
+          <div class="input-row" style="margin-bottom: 6px;">
+            <span style="font-size:12px; color:var(--text-muted)">Konversi Biji Kopi</span>
+            <span class="bold" id="resKopi">80</span>
+          </div>
+          <div class="input-row" style="margin-bottom: 0;">
+            <span style="font-size:12px; color:var(--text-muted)">Konversi Air Mineral</span>
+            <span class="bold" id="resAir">187</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  
+
+  <!-- TAB 2: MASTER KATALOG PLU -->
+  <div id="tabKatalog" class="tab-content">
+    <div class="search-container">
+      <div class="search-box-wrapper">
+        <i class="ri-search-line"></i>
+        <input type="text" id="searchKatalog" class="search-input" placeholder="Cari nama barang atau PLU..." onkeyup="filterKatalog()">
+      </div>
+    </div>
+
+    <!-- LEGENDA WARNA PLU -->
+    <div class="plu-legend-container">
+      <div class="legend-item">
+        <span class="legend-badge-raw"></span>
+        <span>PLU RAW</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-badge-konversi"></span>
+        <span>PLU KONVERSI</span>
+      </div>
+    </div>
+
+    <!-- Form Tambah & Sort PLU Khusus Admin -->
+    <div class="card admin-only" style="margin-top:0;">
+      <div class="card-title" style="justify-content: space-between;">
+        <span><i class="ri-add-circle-line" style="color:var(--primary)"></i> Tambah Item PLU (Auto Sync Sheets)</span>
+        <button class="btn-sm" style="background:var(--primary-light); color:var(--primary)" onclick="sortKatalogAbjad()">Sort A-Z</button>
+      </div>
+      <input type="text" id="newPluCat" class="search-input" placeholder="Kategori (Misal: SARANA, SYRUP)" style="padding-left:14px; margin-bottom:8px;">
+      <input type="text" id="newPluNama" class="search-input" placeholder="Nama Barang" style="padding-left:14px; margin-bottom:8px;">
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="newPluRaw" class="search-input" placeholder="PLU Raw" style="padding-left:14px;">
+        <input type="text" id="newPluKonv" class="search-input" placeholder="PLU Konversi" style="padding-left:14px;">
+      </div>
+      <button class="btn-sm" id="btnSimpanPlu" style="background:var(--primary); color:#fff; width:100%; padding:10px; margin-top:8px;" onclick="tambahPluAdmin()">+ Simpan Ke Google Sheets</button>
+    </div>
+    
+    <div id="katalogAccordion" class="katalog-accordion">
+      <div style="text-align:center; color:var(--text-muted); padding:30px 0; font-size:13px;">
+        <i class="ri-loader-4-line ri-spin" style="font-size:24px;"></i><br>Memuat Katalog Data...
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
   <div class="bottom-nav">
-    <button class="nav-item" onclick="forceSync()"><i class="ri-refresh-line"></i><span>Klik Untuk Refresh Data</span></button>
+    <button class="nav-item active" id="navGramasi" onclick="switchNav('tabKalkulator', this)">
+      <i class="ri-calculator-line"></i>
+      <span>Gramasi</span>
+    </button>
+    
+    <button class="nav-item-center" onclick="refreshAllData()">
+      <i class="ri-refresh-line"></i>
+    </button>
+
+    <button class="nav-item" id="navKatalog" onclick="switchNav('tabKatalog', this)">
+      <i class="ri-database-2-line"></i>
+      <span>Katalog PLU</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- MODAL POPUP LOGIN ADMIN -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="ri-shield-keyhole-line" style="color:var(--primary); font-size:20px;"></i>
+        <span>Otentikasi Admin</span>
+      </div>
+      <button class="modal-close" onclick="closeLoginModal()"><i class="ri-close-line"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>Masukkan PIN Keamanan untuk membuka akses edit & manajemen data.</p>
+      <form onsubmit="submitAdminLogin(event)">
+        <div class="pin-input-group">
+          <i class="ri-lock-password-line left-icon"></i>
+          <input type="password" id="inputPinAdmin" class="pin-input-field" placeholder="Masukkan PIN" maxlength="10" autocomplete="off">
+          <i class="ri-eye-off-line toggle-eye" id="toggleEyeIcon" onclick="togglePasswordVisibility()"></i>
+        </div>
+        <div class="modal-error" id="modalErrorMsg">PIN salah, silakan coba lagi!</div>
+        <button type="submit" class="btn-submit-login">Masuk Mode Admin</button>
+      </form>
+    </div>
   </div>
 </div>
 
 <script>
-  const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTh44Pn8778u8iW9A9QA1UyYeHj_zO2RQET5gUlhPpua48_MA6XCy0HY6zKAeOGpS9UdT8ogPkzvKo0/pub?output=csv';
-  const GID_WADAH = '2064100982'; 
-  const GID_BIANG = '1208855579';
+  const SPREADSHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTh44Pn8778u8iW9A9QA1UyYeHj_zO2RQET5gUlhPpua48_MA6XCy0HY6zKAeOGpS9UdT8ogPkzvKo0/pub?output=csv';
+  
+  // GID TAB TERPISAH
+  const GRAMASI_GID = '2064100982'; // Tab: Kalkulator PC
+  const BIANG_GID = '1208855579';    // Tab: Kalkulator Biang
+  
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1OtQ6ngQ9KUX96bPJtGzsRX0XCbmu4lEA_q1aAM96AtBMRRqWe9YTwmc0ceyG2kpDzw/exec'; 
 
-  let ratioBiji = 0.3; // Default
+  const ADMIN_PIN = "1197";
+  let isAdmin = false;
+  let ratioBijiKopi = 0.3; // Default rasio
 
-  function parseCSV(text) {
-    return text.split('\n').map(row => row.split(','));
+  function switchNav(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+
+    if(tabId === 'tabKatalog') loadGoogleSheetsData();
   }
 
-  async function forceSync() {
-    // 1. Sync Wadah
-    fetch(`${BASE_URL}&gid=${GID_WADAH}&nocache=${Date.now()}`)
-      .then(r => r.text()).then(csv => {
-        const rows = parseCSV(csv);
-        const tbody = document.querySelector('#tabelGramasi tbody');
-        tbody.innerHTML = '';
+  let dataWadah = JSON.parse(localStorage.getItem('so_point_coffee_data')) || [
+    { nama: "Biscoff Crunchy", tare: 33, mj: 1 },
+    { nama: "Botol Bening (Korken)", tare: 608, mj: 1 }
+  ];
+  function saveData() { localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); }
+
+  function parseCSV(text) {
+    let p = '', c = '', r = [];
+    let q = false;
+    let row = [''];
+    for (let i = 0; i < text.length; i++) {
+      c = text[i];
+      p = text[i - 1];
+      if (c === '"') {
+        if (q && text[i + 1] === '"') { row[row.length - 1] += '"'; i++; }
+        else { q = !q; }
+      } else if (c === ',' && !q) {
+        row.push('');
+      } else if ((c === '\r' || c === '\n') && !q) {
+        if (c === '\r' && text[i + 1] === '\n') { i++; }
+        r.push(row);
+        row = [''];
+      } else {
+        row[row.length - 1] += c;
+      }
+    }
+    if (row.length > 1 || row[0] !== '') { r.push(row); }
+    return r;
+  }
+
+  /* 1. AMBIL DATA GRAMASI DARI TAB KAKULATOR PC */
+  function loadGramasiFromSheets() {
+    if (!GRAMASI_GID) { hitungGramasi(); return; }
+
+    const url = SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID + '&t=' + Date.now();
+    fetch(url)
+      .then(res => res.text())
+      .then(csvText => {
+        const rows = parseCSV(csvText);
+        let parsedWadah = [];
+        
         rows.forEach(row => {
-          if(row[0] && row[0].toUpperCase() !== 'NAMA WADAH' && row[0].toUpperCase() !== 'WADAH' && !row[0].includes('KALKULATOR')) {
-            tbody.innerHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td id="hasil-${row[0]}">-</td></tr>`;
+          const nama = (row[0] || '').trim();
+          const tare = parseFloat((row[1] || '0').replace(',', '.')) || 0;
+          const mj = parseFloat((row[2] || '1').replace(',', '.')) || 1;
+          
+          const namaUpper = nama.toUpperCase();
+          if (nama && namaUpper !== 'WADAH' && namaUpper !== 'NAMA WADAH' && !namaUpper.includes('KALKULATOR')) {
+            parsedWadah.push({ nama, tare, mj });
           }
         });
-      });
 
-    // 2. Sync Biang Kopi
-    fetch(`${BASE_URL}&gid=${GID_BIANG}&nocache=${Date.now()}`)
-      .then(r => r.text()).then(csv => {
-        const rows = parseCSV(csv);
-        // Baris 7: Konversi Biji (index 6, col 1), Netto (index 5, col 1) -> menyesuaikan urutan baris
-        const netto = parseFloat(rows[5][1]) || 520;
-        const kopi = parseFloat(rows[6][1]) || 156;
-        ratioBiji = kopi / netto;
-        alert("Data berhasil diperbarui dari Google Sheets!");
+        if (parsedWadah.length > 0) {
+          dataWadah = parsedWadah;
+          saveData();
+        }
+        hitungGramasi();
+      })
+      .catch(() => hitungGramasi());
+  }
+
+  /* 2. AMBIL DATA RASIO BIANG DARI TAB KALKULATOR BIANG */
+  function loadBiangFromSheets() {
+    if (!BIANG_GID) { hitungBiang(); return; }
+
+    const url = SPREADSHEET_BASE_URL + '&gid=' + BIANG_GID + '&t=' + Date.now();
+    fetch(url)
+      .then(res => res.text())
+      .then(csvText => {
+        const rows = parseCSV(csvText);
+        let nettoVal = 520;
+        let kopiVal = 156;
+
+        rows.forEach(row => {
+          const label = (row[0] || '').trim().toUpperCase();
+          const val = parseFloat((row[1] || '0').replace(',', '.')) || 0;
+          
+          if (label.includes('NETTO')) nettoVal = val;
+          if (label.includes('KONVERSI BIJI KOPI')) kopiVal = val;
+        });
+
+        if (nettoVal > 0 && kopiVal > 0) {
+          ratioBijiKopi = kopiVal / nettoVal;
+        }
+        hitungBiang();
+      })
+      .catch(() => hitungBiang());
+  }
+
+  function refreshAllData() {
+    loadGramasiFromSheets();
+    loadBiangFromSheets();
+    document.getElementById('timbanganGramasi').value = '';
+    document.getElementById('biangTimbangan').value = '';
+    document.getElementById('biangBotol').value = '';
+    hitungBiang();
+  }
+
+  function handleAuthButtonClick() {
+    if (!isAdmin) {
+      openLoginModal();
+    } else {
+      isAdmin = false;
+      document.getElementById('appFrame').classList.remove('is-admin');
+      document.getElementById('roleStatus').innerText = "Mode Staf (Read-Only)";
+      document.getElementById('labelAuth').innerText = "Login Admin";
+      document.getElementById('iconAuth').className = "ri-user-settings-line";
+      updateAdminView();
+    }
+  }
+
+  function openLoginModal() {
+    const modal = document.getElementById('loginModal');
+    const input = document.getElementById('inputPinAdmin');
+    input.value = '';
+    document.getElementById('modalErrorMsg').style.display = 'none';
+    modal.classList.add('open');
+    setTimeout(() => input.focus(), 150);
+  }
+
+  function closeLoginModal() { document.getElementById('loginModal').classList.remove('open'); }
+
+  function togglePasswordVisibility() {
+    const input = document.getElementById('inputPinAdmin');
+    const icon = document.getElementById('toggleEyeIcon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'ri-eye-line toggle-eye';
+    } else {
+      input.type = 'password';
+      icon.className = 'ri-eye-off-line toggle-eye';
+    }
+  }
+
+  function submitAdminLogin(event) {
+    event.preventDefault();
+    const pinVal = document.getElementById('inputPinAdmin').value.trim();
+    if (pinVal === ADMIN_PIN) {
+      isAdmin = true;
+      document.getElementById('appFrame').classList.add('is-admin');
+      document.getElementById('roleStatus').innerText = "Mode Admin (Klik teks untuk edit)";
+      document.getElementById('labelAuth').innerText = "Logout";
+      document.getElementById('iconAuth').className = "ri-logout-box-r-line";
+      closeLoginModal();
+      updateAdminView();
+    } else {
+      document.getElementById('modalErrorMsg').style.display = 'block';
+      document.getElementById('inputPinAdmin').focus();
+    }
+  }
+
+  function updateAdminView() {
+    document.querySelectorAll('.admin-only').forEach(el => {
+      el.style.display = isAdmin ? (el.tagName === 'TH' || el.tagName === 'TD' ? 'table-cell' : 'block') : 'none';
+    });
+    hitungGramasi();
+    if(structuredKatalog) renderAccordion(structuredKatalog);
+  }
+
+  function urutkanAbjad() {
+    dataWadah.sort((a, b) => a.nama.localeCompare(b.nama));
+    saveData(); hitungGramasi();
+  }
+
+  function hitungGramasi() {
+    const input = parseFloat(document.getElementById('timbanganGramasi').value) || 0;
+    const tbody = document.getElementById('tabelGramasi');
+    tbody.innerHTML = '';
+
+    dataWadah.forEach((item, index) => {
+      let hasil = item.nama.includes("Yakult") 
+        ? Math.round(input * item.mj) 
+        : Math.round((input - item.tare) * item.mj);
+
+      let displayMj = (item.mj % 1 === 0) ? item.mj.toString() : item.mj.toString().replace('.', ',');
+
+      const row = `
+        <tr>
+          <td class="bold" contenteditable="${isAdmin}" onblur="editGramasiDirect(${index}, 'nama', this.innerText)">${item.nama}</td>
+          <td contenteditable="${isAdmin}" onblur="editGramasiDirect(${index}, 'tare', this.innerText)">${item.tare === 0 ? '-' : item.tare}</td>
+          <td contenteditable="${isAdmin}" onblur="editGramasiDirect(${index}, 'mj', this.innerText)">${displayMj}</td>
+          <td class="bold" style="color:var(--primary)">${hasil}</td>
+          <td class="admin-only" style="display: ${isAdmin ? 'table-cell' : 'none'};">
+            <button class="btn-sm btn-move" onclick="pindahItem(${index}, -1)">▲</button>
+            <button class="btn-sm btn-move" onclick="pindahItem(${index}, 1)">▼</button>
+            <button class="btn-sm btn-del" onclick="hapusItem(${index})">✕</button>
+          </td>
+        </tr>
+      `;
+      tbody.innerHTML += row;
+    });
+  }
+
+  function editGramasiDirect(index, field, val) {
+    if (!isAdmin) return;
+    let cleanVal = val.replace(',', '.').trim();
+    if (field === 'nama') dataWadah[index].nama = cleanVal || "Item Baru";
+    else if (field === 'tare') dataWadah[index].tare = parseFloat(cleanVal) || 0;
+    else if (field === 'mj') dataWadah[index].mj = parseFloat(cleanVal) || 1;
+
+    saveData();
+    hitungGramasi();
+    kirimGramasiKeSheets(dataWadah[index]);
+  }
+
+  function tambahItem() {
+    const nama = document.getElementById('newNama').value.trim();
+    const tare = parseFloat(document.getElementById('newTare').value) || 0;
+    const mj = parseFloat(document.getElementById('newMj').value) || 1;
+    if (!nama) return alert("Nama wadah wajib diisi!");
+
+    const newItem = { nama, tare, mj };
+    dataWadah.push(newItem);
+    urutkanAbjad();
+
+    document.getElementById('newNama').value = '';
+    document.getElementById('newTare').value = '';
+    document.getElementById('newMj').value = '';
+    kirimGramasiKeSheets(newItem);
+  }
+
+  function kirimGramasiKeSheets(item) {
+    if (APPS_SCRIPT_URL) {
+      fetch(APPS_SCRIPT_URL, {
+        method: "POST", mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "updateGramasi", nama: item.nama, tare: item.tare, mj: item.mj })
       });
+    }
+  }
+
+  function hapusItem(index) {
+    if (confirm(`Hapus ${dataWadah[index].nama}?`)) {
+      dataWadah.splice(index, 1);
+      saveData(); hitungGramasi();
+    }
+  }
+
+  function pindahItem(index, dir) {
+    const newIdx = index + dir;
+    if (newIdx >= 0 && newIdx < dataWadah.length) {
+      const temp = dataWadah[index];
+      dataWadah[index] = dataWadah[newIdx];
+      dataWadah[newIdx] = temp;
+      saveData(); hitungGramasi();
+    }
   }
 
   function hitungBiang() {
-    const netto = parseFloat(document.getElementById('biangTimbangan').value) - parseFloat(document.getElementById('biangBotol').value);
-    document.getElementById('resNetto').innerText = netto || 0;
-    document.getElementById('resKopi').innerText = Math.round(netto * ratioBiji) || 0;
+    const timbangan = parseFloat(document.getElementById('biangTimbangan').value) || 0;
+    const botol = parseFloat(document.getElementById('biangBotol').value) || 0;
+    const netto = Math.max(0, timbangan - botol);
+    const kopi = Math.round(netto * (isNaN(ratioBijiKopi) ? 0.3 : ratioBijiKopi));
+    document.getElementById('resNetto').innerText = netto;
+    document.getElementById('resKopi').innerText = kopi;
+    document.getElementById('resAir').innerText = netto - kopi;
   }
 
-  // Auto-init
-  forceSync();
+  // LOGIKA KATALOG PLU
+  let structuredKatalog = {};
+  let categoryRenames = JSON.parse(localStorage.getItem('so_cat_renames')) || {};
+
+  function processRow(colNama, colRaw, colKonv, currentCategory) {
+    const name = (colNama || '').trim();
+    const raw = (colRaw || '').trim();
+    const konv = (colKonv || '').trim();
+    if (!name) return currentCategory;
+
+    const isCat = name && (!raw || raw === '-') && (!konv || konv === '-') && name.toUpperCase() !== 'DESKRIPSI BARANG';
+    if (isCat) {
+      let catName = name.toUpperCase();
+      let targetCat = (catName === 'MAIN PACKAGING' || catName === 'SECONDARY SUPPLIES') ? 'SARANA' : catName;
+      if (categoryRenames[targetCat]) targetCat = categoryRenames[targetCat];
+      if (!structuredKatalog[targetCat]) structuredKatalog[targetCat] = [];
+      return targetCat;
+    }
+
+    if (name.toUpperCase() !== 'DESKRIPSI BARANG') {
+      if (!structuredKatalog[currentCategory]) structuredKatalog[currentCategory] = [];
+      structuredKatalog[currentCategory].push({
+        id: `${currentCategory}_${name}`,
+        nama: name,
+        pluRaw: (raw && raw !== '-') ? raw : null,
+        pluKonversi: (konv && konv !== '-') ? konv : null
+      });
+    }
+    return currentCategory;
+  }
+
+  function loadGoogleSheetsData() {
+    const url = SPREADSHEET_BASE_URL.includes('?') ? SPREADSHEET_BASE_URL + '&t=' + Date.now() : SPREADSHEET_BASE_URL + '?t=' + Date.now();
+    fetch(url)
+      .then(res => res.text())
+      .then(csvText => {
+        const rows = parseCSV(csvText);
+        if (!rows.length) return;
+
+        structuredKatalog = {};
+        let catA = "LAIN-LAIN";
+        let catE = "SARANA";
+        if (categoryRenames["SARANA"]) catE = categoryRenames["SARANA"];
+
+        rows.forEach(row => {
+          catA = processRow(row[0], row[1], row[2], catA);
+          if (row.length >= 5) catE = processRow(row[4], row[5], row[6], catE);
+        });
+
+        sortKatalogAbjad(false);
+        renderAccordion(structuredKatalog);
+      })
+      .catch(() => {
+        document.getElementById('katalogAccordion').innerHTML = `<div style="text-align:center; color:var(--danger); padding:20px;">Gagal memuat katalog.</div>`;
+      });
+  }
+
+  function sortKatalogAbjad(showNotification = true) {
+    Object.keys(structuredKatalog).forEach(cat => {
+      structuredKatalog[cat].sort((a, b) => a.nama.localeCompare(b.nama));
+    });
+    renderAccordion(structuredKatalog);
+    if (showNotification) alert("Katalog berhasil diurutkan A-Z!");
+  }
+
+  function renderAccordion(katalogData, forceOpen = false) {
+    const container = document.getElementById('katalogAccordion');
+    let accordionHTML = '';
+    const categories = Object.keys(katalogData);
+    
+    if (categories.length === 0) {
+      container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px;">Barang tidak ditemukan.</div>`;
+      return;
+    }
+
+    categories.forEach(cat => {
+      const items = katalogData[cat];
+      if (items.length === 0) return;
+
+      let itemsHTML = '';
+      items.forEach((item, index) => {
+        let rawBadge = item.pluRaw ? `<span class="plu-badge-raw" contenteditable="${isAdmin}" onblur="editPluDirect('${cat}', ${index}, 'raw', this.innerText)">${item.pluRaw}</span>` : '';
+        let konvBadge = item.pluKonversi ? `<span class="plu-badge-konversi" contenteditable="${isAdmin}" onblur="editPluDirect('${cat}', ${index}, 'konv', this.innerText)">${item.pluKonversi}</span>` : '';
+
+        if (isAdmin && !item.pluRaw) rawBadge = `<span class="plu-badge-raw" contenteditable="true" onblur="editPluDirect('${cat}', ${index}, 'raw', this.innerText)">+ RAW</span>`;
+        if (isAdmin && !item.pluKonversi) konvBadge = `<span class="plu-badge-konversi" contenteditable="true" onblur="editPluDirect('${cat}', ${index}, 'konv', this.innerText)">+ KONV</span>`;
+
+        itemsHTML += `
+          <div class="plu-card">
+            <div class="plu-card-header">
+              <div class="plu-title" contenteditable="${isAdmin}" onblur="editPluDirect('${cat}', ${index}, 'nama', this.innerText)">${item.nama}</div>
+              <div class="plu-badge-container">
+                ${rawBadge} ${konvBadge}
+                <button class="btn-sm btn-del admin-only" style="display: ${isAdmin ? 'inline-block' : 'none'}; padding: 2px 5px;" onclick="hapusPluAdmin('${cat}', ${index})">✕</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      accordionHTML += `
+        <div class="category-group ${forceOpen ? 'open' : ''}">
+          <div class="category-header" onclick="toggleCategory(event, this)">
+            <span contenteditable="${isAdmin}" onclick="event.stopPropagation()" onblur="editCategoryName('${cat}', this.innerText)">${cat}</span>
+            <span style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:11px; opacity:0.8;">(${items.length})</span>
+              <i class="ri-arrow-down-s-line"></i>
+            </span>
+          </div>
+          <div class="category-content">${itemsHTML}</div>
+        </div>
+      `;
+    });
+    container.innerHTML = accordionHTML;
+  }
+
+  function toggleCategory(event, headerEl) { headerEl.parentElement.classList.toggle('open'); }
+
+  function editCategoryName(oldCatName, newCatText) {
+    if (!isAdmin) return;
+    const cleanNewCat = newCatText.trim().toUpperCase();
+    if (!cleanNewCat || cleanNewCat === oldCatName) return;
+    categoryRenames[oldCatName] = cleanNewCat;
+    localStorage.setItem('so_cat_renames', JSON.stringify(categoryRenames));
+    structuredKatalog[cleanNewCat] = structuredKatalog[oldCatName];
+    delete structuredKatalog[oldCatName];
+    renderAccordion(structuredKatalog, true);
+  }
+
+  function filterKatalog() {
+    const kw = document.getElementById('searchKatalog').value.toLowerCase();
+    if (!kw) { renderAccordion(structuredKatalog, false); return; }
+
+    let filteredResult = {};
+    Object.keys(structuredKatalog).forEach(cat => {
+      const matchedItems = structuredKatalog[cat].filter(item => 
+        item.nama.toLowerCase().includes(kw) || 
+        (item.pluRaw && item.pluRaw.toLowerCase().includes(kw)) ||
+        (item.pluKonversi && item.pluKonversi.toLowerCase().includes(kw))
+      );
+      if (matchedItems.length > 0) filteredResult[cat] = matchedItems;
+    });
+    renderAccordion(filteredResult, true);
+  }
+
+  function tambahPluAdmin() {
+    const kategori = document.getElementById('newPluCat').value.trim().toUpperCase();
+    const nama = document.getElementById('newPluNama').value.trim();
+    const raw = document.getElementById('newPluRaw').value.trim();
+    const konv = document.getElementById('newPluKonv').value.trim();
+    if (!kategori || !nama) return alert("Kategori dan Nama Barang wajib diisi!");
+
+    const btn = document.getElementById('btnSimpanPlu');
+    btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST", mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "tambahPlu", kategori, nama, pluRaw: raw, pluKonversi: konv })
+    }).then(() => {
+      alert("Berhasil disimpan ke Google Sheets!");
+      document.getElementById('newPluCat').value = '';
+      document.getElementById('newPluNama').value = '';
+      document.getElementById('newPluRaw').value = '';
+      document.getElementById('newPluKonv').value = '';
+      btn.innerText = "+ Simpan Ke Google Sheets"; btn.disabled = false;
+      setTimeout(loadGoogleSheetsData, 1500);
+    }).catch(err => {
+      alert("Gagal: " + err);
+      btn.innerText = "+ Simpan Ke Google Sheets"; btn.disabled = false;
+    });
+  }
+
+  function editPluDirect(kategori, index, field, text) {
+    if (!isAdmin) return;
+    const item = structuredKatalog[kategori][index];
+    let cleanText = text.replace('+ RAW', '').replace('+ KONV', '').trim();
+    if (field === 'nama') item.nama = cleanText || "Nama Barang";
+    else if (field === 'raw') item.pluRaw = (cleanText && cleanText !== '-') ? cleanText : null;
+    else if (field === 'konv') item.pluKonversi = (cleanText && cleanText !== '-') ? cleanText : null;
+    renderAccordion(structuredKatalog, true);
+  }
+
+  function hapusPluAdmin(kategori, index) {
+    const item = structuredKatalog[kategori][index];
+    if (confirm(`Hapus ${item.nama}?`)) {
+      structuredKatalog[kategori].splice(index, 1);
+      renderAccordion(structuredKatalog, true);
+    }
+  }
+
+  // Inisialisasi awal aplikasi
+  loadGramasiFromSheets();
+  loadBiangFromSheets();
 </script>
+
 </body>
 </html>
