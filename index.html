@@ -183,6 +183,7 @@
   }
   .plu-title { font-size: 13px; font-weight: 600; color: var(--text-main); line-height: 1.3; }
 
+  /* Styling Badge PLU TANPA TEKS */
   .plu-badge-container {
     display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center;
   }
@@ -195,6 +196,7 @@
     padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; font-family: monospace;
   }
 
+  /* Inline Editing Visual Clue Mode Admin */
   .is-admin [contenteditable="true"] {
     outline: 1.5px dashed var(--primary) !important;
     background: #ffffff !important;
@@ -204,6 +206,7 @@
     cursor: text;
   }
 
+  /* Bottom Navigation */
   .bottom-nav {
     position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 100%; max-width: 480px; background: #ffffff;
@@ -228,11 +231,13 @@
   }
   .nav-item-center i { font-size: 22px; color: #fff; }
 
+  /* Admin Control UI */
   .admin-only { display: none; }
   .btn-sm { padding: 4px 8px; border-radius: 6px; border: none; font-size: 11px; font-weight: bold; cursor: pointer; }
   .btn-del { background: #fee2e2; color: var(--danger); }
   .btn-move { background: #f1f5f9; color: var(--text-main); }
 
+  /* MODAL LOGIN STYLING */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
@@ -279,6 +284,7 @@
   }
   .btn-submit-login:active { transform: scale(0.98); }
 
+  /* MEDIA QUERIES UNTUK DESKTOP */
   @media (min-width: 768px) {
     .app-frame {
       max-width: 1020px;
@@ -487,39 +493,13 @@
 </div>
 
 <script>
-  // LINK SPREADSHEET CSV TERBARU
-  const SPREADSHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTh44Pn8778u8iW9A9QA1UyYeHj_zO2RQET5gUlhPpua48_MA6XCy0HY6zKAeOGpS9UdT8ogPkzvKo0/pub?output=csv';
+  const SPREADSHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTma4BAWGCQJukI1wm-7Mv1JYW0V-maOv3sjwe1LBUTJk_U3m4r3wLt_NeRE02UlY_cvBcZnmjVV54f/pub?output=csv';
   
-  // GID TAB GRAMASI
-  const GRAMASI_GID = '2064100982'; 
-
-  // URL GOOGLE APPS SCRIPT TERBARU
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1OtQ6ngQ9KUX96bPJtGzsRX0XCbmu4lEA_q1aAM96AtBMRRqWe9YTwmc0ceyG2kpDzw/exec'; 
+  // PASTE URL GOOGLE APPS SCRIPT ANDA DI SINI
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwT_9AGp2YvUGlSiwyYhm-S5mAQ0kbShxjitDXH2D7w0AB9NdwJNC7xj3UowMI7mKUF/exec'; 
 
   const ADMIN_PIN = "1197";
   let isAdmin = false;
-
-  // PENYARING KETAT UNTUK MEMBUANG TEKS SAMPAH / HEADER
-  function isWadahSampah(nama) {
-    if (!nama) return true;
-    const u = nama.toString().toUpperCase().trim();
-    return (
-      u === '' ||
-      u === 'WADAH' ||
-      u === 'NAMA WADAH' ||
-      u === 'TARE' ||
-      u === 'MJ' ||
-      u === 'BERSIH' ||
-      u.includes('KALKULATOR') ||
-      u.includes('BIANG KOPI') ||
-      u.includes('INPUT') ||
-      u.includes('TIMBANGAN') ||
-      u.includes('BOTOL KOSONG') ||
-      u.includes('HASIL BERSIH') ||
-      u.includes('NETTO') ||
-      u.includes('KONVERSI')
-    );
-  }
 
   function switchNav(tabId, btn) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -531,7 +511,7 @@
     if(tabId === 'tabKatalog') loadGoogleSheetsData();
   }
 
-  // Data Gramasi Wadah Utama (Fallback Aman)
+  // Data Gramasi SO
   const defaultData = [
     { nama: "Biscoff Crunchy", tare: 33, mj: 1 },
     { nama: "Botol Bening (Korken)", tare: 608, mj: 1 },
@@ -558,75 +538,10 @@
     { nama: "Yakult / Pcs", tare: 0, mj: 65 }
   ];
 
-  let rawStored = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
-  let dataWadah = rawStored.filter(item => !isWadahSampah(item.nama));
-  saveData();
+  let dataWadah = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
+  function saveData() { localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); }
 
-  function saveData() { 
-    localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); 
-  }
-
-  /* BACA TAB GRAMASI SECARA DINAMIS DARI GOOGLE SHEETS */
-  function loadGramasiFromSheets() {
-    if (!GRAMASI_GID) {
-      hitungGramasi();
-      return;
-    }
-
-    const gramasiCsvUrl = SPREADSHEET_BASE_URL.includes('?') 
-      ? SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID + '&t=' + Date.now()
-      : SPREADSHEET_BASE_URL + '?gid=' + GRAMASI_GID + '&t=' + Date.now();
-
-    fetch(gramasiCsvUrl)
-      .then(res => res.text())
-      .then(csvText => {
-        const rows = parseCSV(csvText);
-        let parsedWadah = [];
-        let mulaiMembaca = false;
-        
-        for (let i = 0; i < rows.length; i++) {
-          const row = rows[i];
-          const nama = (row[0] || '').trim();
-          const tare = parseFloat((row[1] || '0').replace(',', '.')) || 0;
-          const mj = parseFloat((row[2] || '1').replace(',', '.')) || 1;
-          
-          const namaUpper = nama.toUpperCase();
-
-          // Mulai membaca tepat setelah menemukan baris header 'WADAH' atau 'NAMA WADAH'
-          if (namaUpper === 'WADAH' || namaUpper === 'NAMA WADAH') {
-            mulaiMembaca = true;
-            continue;
-          }
-
-          // Hentikan pembacaan otomatis saat menyentuh bagian bawah (Biang Kopi / Netto)
-          if (mulaiMembaca && (
-            namaUpper.includes('BIANG KOPI') || 
-            namaUpper.includes('INPUT') || 
-            namaUpper.includes('HASIL BERSIH') || 
-            namaUpper.includes('NETTO') || 
-            namaUpper.includes('KONVERSI')
-          )) {
-            break; 
-          }
-
-          // Masukkan item baru secara dinamis selama berada di rentang tabel wadah
-          if (mulaiMembaca && nama && !isWadahSampah(nama) && tare < 10000) {
-            parsedWadah.push({ nama, tare, mj });
-          }
-        }
-
-        if (parsedWadah.length > 0) {
-          dataWadah = parsedWadah;
-          saveData();
-        }
-        hitungGramasi();
-      })
-      .catch(err => {
-        console.warn("Gagal sinkronisasi Sheets:", err);
-        hitungGramasi();
-      });
-  }
-
+  /* LOGIKA MODAL LOGIN PROPER */
   function handleAuthButtonClick() {
     if (!isAdmin) {
       openLoginModal();
@@ -705,8 +620,6 @@
     tbody.innerHTML = '';
 
     dataWadah.forEach((item, index) => {
-      if (isWadahSampah(item.nama)) return;
-
       let hasil = item.nama.includes("Yakult") 
         ? Math.round(input * item.mj) 
         : Math.round((input - item.tare) * item.mj);
@@ -814,10 +727,9 @@
     document.getElementById('biangTimbangan').value = '';
     document.getElementById('biangBotol').value = '';
     hitungGramasi(); hitungBiang();
-    loadGramasiFromSheets();
   }
 
-  // LOGIKA MULTI-KATEGORI KATALOG PLU
+  // LOGIKA MULTI-KATEGORI & READ/WRITE GOOGLE SHEETS
   let structuredKatalog = {};
   let categoryRenames = JSON.parse(localStorage.getItem('so_cat_renames')) || {};
 
@@ -879,11 +791,7 @@
   }
 
   function loadGoogleSheetsData() {
-    const urlWithCacheBuster = SPREADSHEET_BASE_URL.includes('?') 
-      ? SPREADSHEET_BASE_URL + '&t=' + Date.now() 
-      : SPREADSHEET_BASE_URL + '?t=' + Date.now();
-
-    fetch(urlWithCacheBuster)
+    fetch(SPREADSHEET_CSV_URL)
       .then(res => res.text())
       .then(csvText => {
         const rows = parseCSV(csvText);
@@ -934,6 +842,7 @@
 
       let itemsHTML = '';
       items.forEach((item, index) => {
+        // HANYA MENAMPILKAN NOMOR PLU TANPA PREFIKS "RAW:" ATAU "KONV:"
         let rawBadge = item.pluRaw ? `<span class="plu-badge-raw" contenteditable="${isAdmin}" onblur="editPluDirect('${cat}', ${index}, 'raw', this.innerText)">${item.pluRaw}</span>` : '';
         let konvBadge = item.pluKonversi ? `<span class="plu-badge-konversi" contenteditable="${isAdmin}" onblur="editPluDirect('${cat}', ${index}, 'konv', this.innerText)">${item.pluKonversi}</span>` : '';
 
@@ -1014,6 +923,7 @@
     renderAccordion(filteredResult, true);
   }
 
+  // FUNGSI PROSES SIMPAN OTOMATIS KE GOOGLE SHEETS
   function tambahPluAdmin() {
     const kategori = document.getElementById('newPluCat').value.trim().toUpperCase();
     const nama = document.getElementById('newPluNama').value.trim();
@@ -1078,9 +988,9 @@
     }
   }
 
-  // Inisialisasi Aplikasi & Tarik Data Terbaru dari Sheets
-  loadGramasiFromSheets();
-  loadGoogleSheetsData(); // Tambahkan baris ini agar Katalog PLU langsung terisi
+  // Init
+  hitungGramasi();
+  hitungBiang();
 </script>
 
 </body>
