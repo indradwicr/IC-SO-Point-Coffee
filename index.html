@@ -487,9 +487,12 @@
 </div>
 
 <script>
-  // URL SPREADSHEET CSV DENGAN SUPORT MULTI-SHEET (gid=0 untuk Katalog, gid=245969321 untuk Gramasi)
+  // LINK SHEETS CSV UTAMA
   const SPREADSHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTh44Pn8778u8iW9A9QA1UyYeHj_zO2RQET5gUlhPpua48_MA6XCy0HY6zKAeOGpS9UdT8ogPkzvKo0/pub?output=csv';
   
+  // MASUKKAN GID KHUSUS TAB GRAMASI DI SINI (JIKA DIBUTUHKAN)
+  const GRAMASI_GID = '2064100982'; 
+
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1OtQ6ngQ9KUX96bPJtGzsRX0XCbmu4lEA_q1aAM96AtBMRRqWe9YTwmc0ceyG2kpDzw/exec'; 
 
   const ADMIN_PIN = "1197";
@@ -505,7 +508,7 @@
     if(tabId === 'tabKatalog') loadGoogleSheetsData();
   }
 
-  // Fallback Data Gramasi jika Sheets offline
+  // Data Gramasi Wadah Utama (Selalu Siap Tampil / Fallback Aman)
   const defaultData = [
     { nama: "Biscoff Crunchy", tare: 33, mj: 1 },
     { nama: "Botol Bening (Korken)", tare: 608, mj: 1 },
@@ -535,9 +538,12 @@
   let dataWadah = JSON.parse(localStorage.getItem('so_point_coffee_data')) || defaultData;
   function saveData() { localStorage.setItem('so_point_coffee_data', JSON.stringify(dataWadah)); }
 
- /* BACA TAB GRAMASI DARI SHEETS DENGAN FILTER STOP BARIS KOPI */
+  /* BACA TAB GRAMASI DARI SHEETS DENGAN PENYARINGAN AMAN */
   function loadGramasiFromSheets() {
-    if (!GRAMASI_GID || GRAMASI_GID === 'ANGKA_GID_GRAMASI_KAMU') return;
+    if (!GRAMASI_GID) {
+      hitungGramasi();
+      return;
+    }
 
     const gramasiCsvUrl = SPREADSHEET_BASE_URL.includes('?') 
       ? SPREADSHEET_BASE_URL + '&gid=' + GRAMASI_GID 
@@ -551,7 +557,7 @@
         
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
-          if (i === 0) continue; // Skip baris header
+          if (i === 0) continue;
 
           const nama = (row[0] || '').trim();
           const tare = parseFloat((row[1] || '0').replace(',', '.')) || 0;
@@ -559,17 +565,13 @@
           
           const namaUpper = nama.toUpperCase();
 
-          // STOP BACA JIKA SUDAH SAMPAI DI BAGIAN SO BIANG KOPI / HASIL BERSIH
           if (
             namaUpper.includes('BIANG KOPI') || 
             namaUpper.includes('INPUT TIMBANGAN') || 
-            namaUpper.includes('INPUT BERAT') || 
             namaUpper.includes('HASIL BERSIH') || 
-            namaUpper.includes('NETTO') || 
-            namaUpper.includes('KONVERSI BIJI') || 
-            namaUpper.includes('KONVERSI AIR')
+            namaUpper.includes('NETTO')
           ) {
-            break; // Hentikan pembacaan baris selanjutnya
+            break;
           }
           
           if (nama && namaUpper !== 'WADAH' && tare < 10000) {
@@ -580,13 +582,15 @@
         if (parsedWadah.length > 0) {
           dataWadah = parsedWadah;
           saveData();
-          hitungGramasi();
         }
+        hitungGramasi();
       })
       .catch(err => {
-        console.warn("Menggunakan data gramasi bawaan:", err);
+        console.warn("Menggunakan data gramasi lokal:", err);
+        hitungGramasi();
       });
   }
+
   function handleAuthButtonClick() {
     if (!isAdmin) {
       openLoginModal();
@@ -775,7 +779,7 @@
     loadGramasiFromSheets();
   }
 
-  // LOGIKA MULTI-KATEGORI & READ/WRITE GOOGLE SHEETS
+  // LOGIKA MULTI-KATEGORI KATALOG PLU
   let structuredKatalog = {};
   let categoryRenames = JSON.parse(localStorage.getItem('so_cat_renames')) || {};
 
@@ -965,7 +969,7 @@
       }
     });
 
-    renderAccordion(structuredKatalog, true);
+    renderAccordion(filteredResult, true);
   }
 
   function tambahPluAdmin() {
@@ -1032,9 +1036,8 @@
     }
   }
 
-  // Init aplikasi & Muat Gramasi dari Sheets
+  // Inisialisasi Aplikasi
   loadGramasiFromSheets();
-  hitungGramasi();
   hitungBiang();
 </script>
 
